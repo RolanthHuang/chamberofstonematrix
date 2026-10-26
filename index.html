@@ -1,0 +1,1681 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light}body{margin:0;font:14px system-ui}[hidden]{display:none!important}</style>
+</head><body>
+<title>Chamber of Stone Matrix</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+<style>
+/* Layout: a carved stage. The 3D chamber runs full-bleed between a thin inscription band (top) and a stone altar dock (bottom); the math ledger slides in from the right. One dark world by design. */
+:root{
+  color-scheme: dark;
+  --ink:#0d0a07;
+  --stone:#18120d;
+  --stone-2:#231a13;
+  --stone-3:#30251b;
+  --sink:rgba(0,0,0,.30);
+  --glass:rgba(21,15,10,.80);
+  --edge:rgba(242,176,79,.18);
+  --edge-strong:rgba(242,176,79,.46);
+  --sand:#ecdfc6;
+  --dust:#ad9a7b;
+  --ash:#7a6b56;
+  --torch:#f2b04f;
+  --torch-hi:#ffd894;
+  --torch-ink:#2b1806;
+  --ember:#d8772f;
+  --spirit:#8be4f2;
+  --win:#a9de8c;
+  --loss:#e98a70;
+  --shade:rgba(0,0,0,.5);
+  --font-display:"Cinzel","Noto Serif TC","Songti TC",Georgia,serif;
+  --font-cjk:"Noto Serif TC","Songti TC","PMingLiU",Georgia,serif;
+  --font-ui:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  --step--1:12px; --step-0:14px; --step-1:16px; --step-2:20px; --step-3:28px; --step-4:40px;
+}
+html{height:100%;box-sizing:border-box}
+*,*::before,*::after{box-sizing:border-box}
+body{height:100%;margin:0;background:var(--ink);color:var(--sand);font:var(--step-0)/1.45 var(--font-ui);overflow:hidden;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--torch-hi);outline-offset:2px}
+.app{height:100%;display:flex;flex-direction:column}
+.band-inner{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* top band */
+.top{position:relative;z-index:6;background:linear-gradient(180deg,var(--stone-2),var(--stone));border-bottom:1px solid var(--edge)}
+.top-inner{display:flex;align-items:center;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;padding-block:9px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.sigil{width:30px;height:30px;color:var(--torch);flex:none}
+.brand h1{margin:0;font:700 17px/1.1 var(--font-display);letter-spacing:.08em;color:var(--torch-hi);text-wrap:balance}
+.brand p{margin:2px 0 0;font-size:var(--step--1);color:var(--dust);letter-spacing:.06em}
+.top-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.seg{display:inline-flex;border:1px solid var(--edge-strong);border-radius:9px;overflow:hidden;background:var(--sink)}
+.seg button{appearance:none;border:0;background:transparent;color:var(--dust);font-weight:700;font-size:13px;line-height:1;padding:9px 11px;min-width:40px;cursor:pointer;font-variant-numeric:tabular-nums}
+.seg button+button{border-left:1px solid var(--edge)}
+.seg button[aria-pressed="true"]{background:linear-gradient(180deg,var(--torch-hi),var(--torch));color:var(--torch-ink)}
+.seg button:disabled{cursor:not-allowed;opacity:.5}
+.icon-btn{appearance:none;width:34px;height:34px;display:inline-grid;place-items:center;border:1px solid var(--edge-strong);border-radius:9px;background:var(--sink);color:var(--sand);cursor:pointer;padding:0}
+.icon-btn svg{width:18px;height:18px}
+#soundBtn[aria-pressed="false"] .wave{display:none}
+#soundBtn[aria-pressed="true"] .mute{display:none}
+.ledger-btn{appearance:none;height:34px;padding:0 14px;border-radius:9px;border:1px solid var(--edge-strong);background:var(--sink);color:var(--torch-hi);font:700 14px/1 var(--font-cjk);letter-spacing:.14em;cursor:pointer}
+.ledger-btn[aria-expanded="true"]{background:linear-gradient(180deg,var(--torch-hi),var(--torch));color:var(--torch-ink)}
+
+/* stage */
+.stage{position:relative;flex:1 1 auto;min-height:0;overflow:hidden;background:radial-gradient(120% 90% at 50% 40%,var(--stone-2) 0%,var(--ink) 70%)}
+#gl{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab;outline:none}
+#gl.dragging{cursor:grabbing}
+#gl.pointing{cursor:pointer}
+.labels{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:2}
+.hud{position:absolute;z-index:3;top:12px;left:max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:6px;pointer-events:none;max-width:calc(100% - 210px)}
+.hud-row{display:flex;flex-wrap:wrap;gap:6px}
+.pill{font-size:12px;line-height:1;padding:6px 9px;border-radius:999px;border:1px solid var(--edge);background:var(--glass);color:var(--dust);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill b{color:var(--sand);font-weight:700}
+.pill.bonus{border-color:var(--spirit);color:var(--spirit)}
+.history{display:flex;flex-wrap:wrap;gap:4px}
+.history span{font-size:11px;line-height:1;padding:4px 6px;border-radius:6px;background:var(--glass);border:1px solid var(--edge);color:var(--ash);font-variant-numeric:tabular-nums}
+.history span.up{color:var(--win)}
+.history span.down{color:var(--loss)}
+.paytable{position:absolute;z-index:3;top:12px;right:max(16px,env(safe-area-inset-right,0px));min-width:156px;padding:10px 12px;border:1px solid var(--edge);border-radius:12px;background:var(--glass)}
+.pt-title{font:700 12px/1 var(--font-cjk);letter-spacing:.18em;color:var(--dust);margin-bottom:8px}
+.pt-list{list-style:none;margin:0;padding:0;display:grid;gap:3px}
+.pt-list li{display:flex;justify-content:space-between;gap:14px;font-size:13px;color:var(--dust);padding:3px 6px;border-radius:6px;font-variant-numeric:tabular-nums;transition:background .3s,color .3s}
+.pt-list li b{color:var(--sand);font-weight:700}
+.pt-list li.jack b{color:var(--torch-hi)}
+.pt-list li.hl{background:rgba(242,176,79,.24);color:var(--sand)}
+.toast{position:absolute;z-index:4;left:50%;top:15%;transform:translate(-50%,10px);opacity:0;pointer-events:none;text-align:center;transition:opacity .25s,transform .25s;padding:12px 22px 14px;border-radius:14px;background:var(--glass);border:1px solid var(--edge-strong);width:max-content;min-width:190px;max-width:calc(100% - 32px)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast .t-tag{font:700 13px/1 var(--font-display);letter-spacing:.32em;color:var(--torch);margin-bottom:8px}
+.toast .t-big{font:700 var(--step-4)/1 var(--font-display);color:var(--torch-hi);letter-spacing:.04em;font-variant-numeric:tabular-nums}
+.toast .t-mid{font:700 var(--step-2)/1.25 var(--font-cjk);letter-spacing:.12em;color:var(--sand)}
+.toast .t-sub{margin-top:6px;font-size:13px;color:var(--dust)}
+.toast.lose .t-mid{color:var(--dust)}
+.toast.big{border-color:var(--torch);box-shadow:0 0 70px rgba(242,176,79,.35)}
+.hint{position:absolute;z-index:3;left:50%;bottom:12px;transform:translateX(-50%);margin:0;padding:7px 13px;border-radius:999px;background:var(--glass);border:1px solid var(--edge);color:var(--dust);font-size:12px;line-height:1.35;text-align:center;width:max-content;max-width:calc(100% - 32px);pointer-events:none;transition:opacity .3s}
+.hint.off{opacity:0}
+.veil{position:absolute;inset:0;z-index:8;display:grid;place-items:center;background:var(--ink);transition:opacity .6s}
+.veil.gone{opacity:0;pointer-events:none}
+.veil-inner{display:grid;justify-items:center;gap:14px;padding:0 24px}
+.veil-ring{width:46px;height:46px;border-radius:50%;border:2px solid var(--edge-strong);border-top-color:var(--torch-hi);animation:spin 1.1s linear infinite}
+.veil.err .veil-ring{animation:none;border-color:var(--loss)}
+.veil p{margin:0;color:var(--dust);font-size:13px;letter-spacing:.06em;text-align:center;max-width:34ch}
+@keyframes spin{to{transform:rotate(360deg)}}
+.flash{position:absolute;inset:0;z-index:5;pointer-events:none;background:radial-gradient(60% 60% at 50% 45%,rgba(255,216,148,.5),rgba(255,216,148,0) 70%);opacity:0}
+.flash.on{animation:flash 1.2s ease-out}
+@keyframes flash{0%{opacity:0}12%{opacity:1}100%{opacity:0}}
+
+/* tile labels */
+.tl{position:absolute;left:0;top:0;transform:translate(-999px,-999px);will-change:transform;font-size:11px;line-height:1;white-space:nowrap;border-radius:999px;padding:3px 6px;font-weight:700;font-variant-numeric:tabular-nums;transition:opacity .15s}
+.tl.bet{background:linear-gradient(180deg,var(--torch-hi),var(--torch));color:var(--torch-ink);box-shadow:0 2px 8px var(--shade)}
+.tl.res{background:var(--glass);border:1px solid var(--edge-strong);color:var(--sand);display:flex;align-items:baseline;gap:4px;padding:4px 7px}
+.tl.res b{font:700 13px/1 var(--font-display);color:var(--torch-hi)}
+.tl.res em{font-style:normal;color:var(--dust);font-size:10px}
+.tl.res i{font-style:normal;color:var(--win)}
+.tl.res.k0{opacity:.72;padding:3px 6px}
+.tl.res.k0 b{color:var(--ash);font-size:11px}
+.tl.res.jack{background:linear-gradient(180deg,var(--torch-hi),var(--torch));border-color:var(--torch-hi)}
+.tl.res.jack b,.tl.res.jack i,.tl.res.jack em{color:var(--torch-ink)}
+
+/* dock */
+.dock{position:relative;z-index:6;background:linear-gradient(0deg,var(--stone),var(--stone-2));border-top:1px solid var(--edge)}
+.dock-inner{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto auto;grid-template-areas:"bal chips bet act start win";align-items:center;gap:10px 18px;padding-block:10px 12px}
+.stat{display:flex;flex-direction:column;gap:4px;min-width:0}
+.k{font:700 11px/1 var(--font-cjk);letter-spacing:.2em;color:var(--ash)}
+.stat .v{font:700 var(--step-2)/1 var(--font-display);color:var(--sand);font-variant-numeric:tabular-nums;white-space:nowrap}
+.stat-bal{grid-area:bal}
+.stat-bet{grid-area:bet}
+.stat-win{grid-area:win;align-items:flex-end;text-align:right}
+.stat-win .v.up{color:var(--win)}
+.chips-wrap{grid-area:chips;display:flex;flex-direction:column;gap:6px;min-width:0}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{appearance:none;min-width:44px;height:34px;padding:0 10px;border-radius:999px;border:1px dashed var(--edge-strong);background:var(--sink);color:var(--dust);font-weight:700;font-variant-numeric:tabular-nums;cursor:pointer}
+.chip[aria-pressed="true"]{border-style:solid;border-color:var(--torch);color:var(--torch-ink);background:radial-gradient(circle at 50% 35%,var(--torch-hi),var(--torch))}
+.actions{grid-area:act;display:flex;gap:6px}
+.btn{appearance:none;height:38px;padding:0 13px;border-radius:10px;border:1px solid var(--edge-strong);background:var(--sink);color:var(--sand);font:700 14px/1 var(--font-cjk);letter-spacing:.12em;cursor:pointer}
+.btn[aria-pressed="true"]{border-color:var(--spirit);color:var(--spirit);background:rgba(139,228,242,.08)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.start{grid-area:start;appearance:none;min-width:132px;height:52px;padding:0 22px;border-radius:14px;border:1px solid var(--torch-hi);background:linear-gradient(180deg,var(--torch-hi),var(--torch) 55%,var(--ember));color:var(--torch-ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;box-shadow:0 0 0 3px rgba(242,176,79,.12),0 6px 22px rgba(242,176,79,.25);transition:transform .12s,box-shadow .2s,filter .2s}
+.start-cn{font:700 20px/1 var(--font-cjk);letter-spacing:.4em;padding-left:.4em}
+.start-sub{font:700 9px/1 var(--font-ui);letter-spacing:.3em;opacity:.6}
+.start:hover:not(:disabled){filter:brightness(1.07)}
+.start:active:not(:disabled){transform:translateY(1px)}
+.start:disabled{filter:grayscale(.75) brightness(.55);cursor:not-allowed;box-shadow:none}
+
+/* ledger drawer */
+.drawer{position:fixed;z-index:20;top:0;right:0;bottom:0;width:min(440px,100%);display:flex;flex-direction:column;background:var(--stone);border-left:1px solid var(--edge-strong);box-shadow:-20px 0 60px var(--shade);transform:translateX(102%);visibility:hidden;transition:transform .32s cubic-bezier(.2,.8,.2,1),visibility 0s linear .32s;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px)}
+.drawer.open{transform:none;visibility:visible;transition:transform .32s cubic-bezier(.2,.8,.2,1)}
+.drawer-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--edge)}
+.drawer-head h2{margin:0;font:700 18px/1 var(--font-cjk);letter-spacing:.2em;color:var(--torch-hi)}
+.drawer-body{flex:1;overflow-y:auto;padding:0 16px 28px;overscroll-behavior:contain}
+.scrim{position:fixed;inset:0;z-index:19;background:var(--shade)}
+.sec{padding:16px 0;border-bottom:1px solid var(--edge)}
+.sec:last-child{border-bottom:0}
+.sec h3{margin:0 0 10px;font:700 15px/1.3 var(--font-cjk);letter-spacing:.1em;color:var(--sand);display:flex;align-items:center;gap:8px;flex-wrap:wrap;text-wrap:balance}
+.sec p{margin:0 0 10px;color:var(--dust);font-size:13px;line-height:1.65;max-width:60ch}
+.tag{font:700 11px/1 var(--font-ui);letter-spacing:.04em;padding:4px 7px;border-radius:999px;border:1px solid var(--edge-strong);color:var(--dust)}
+.tag.ok{border-color:var(--win);color:var(--win)}
+.tag.spirit{border-color:var(--spirit);color:var(--spirit)}
+.tag.warn{border-color:var(--loss);color:var(--loss)}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}
+.kpi{padding:10px 12px;border-radius:10px;background:var(--stone-2);border:1px solid var(--edge)}
+.kpi span{display:block;font-size:11px;color:var(--ash);letter-spacing:.08em}
+.kpi b{display:block;margin-top:5px;font:700 20px/1 var(--font-display);color:var(--sand);font-variant-numeric:tabular-nums}
+.kpi.main b{color:var(--torch-hi)}
+.param{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:8px 0 12px;font-size:13px}
+.stepper{display:inline-flex;align-items:center;border:1px solid var(--edge-strong);border-radius:9px;overflow:hidden}
+.stepper button{appearance:none;width:34px;height:32px;border:0;background:var(--sink);color:var(--sand);cursor:pointer;font-size:16px}
+.stepper input{width:58px;height:32px;border:0;border-inline:1px solid var(--edge);background:var(--stone-2);color:var(--sand);text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+.tbl-wrap{overflow-x:auto}
+table.mt{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
+.mt th{font-weight:700;color:var(--ash);text-align:right;padding:6px;border-bottom:1px solid var(--edge);white-space:nowrap}
+.mt th:first-child,.mt td:first-child{text-align:left}
+.mt td{padding:5px 6px;text-align:right;color:var(--sand);border-bottom:1px solid rgba(242,176,79,.07);white-space:nowrap}
+.mt td.dim,.mt .dim{color:var(--dust)}
+.mt input{width:64px;height:28px;border:1px solid var(--edge-strong);border-radius:7px;background:var(--stone-2);color:var(--torch-hi);text-align:right;padding:0 6px;font-weight:700;font-variant-numeric:tabular-nums}
+.mt tfoot td{font-weight:700;border-bottom:0;color:var(--torch-hi)}
+.row-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.btn-sm{appearance:none;height:32px;padding:0 12px;border-radius:8px;border:1px solid var(--edge-strong);background:var(--sink);color:var(--sand);font-size:13px;cursor:pointer}
+.btn-sm.primary{background:linear-gradient(180deg,var(--torch-hi),var(--torch));color:var(--torch-ink);border-color:var(--torch-hi);font-weight:700}
+.btn-sm:disabled{opacity:.5;cursor:not-allowed}
+.switch{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:13px;color:var(--sand);cursor:pointer}
+.switch input{width:18px;height:18px;accent-color:var(--torch);flex:none}
+.switch b{color:var(--spirit)}
+.bars{display:grid;gap:5px}
+.bar{display:grid;grid-template-columns:44px minmax(0,1fr) 64px;align-items:center;gap:8px;font-size:12px;color:var(--dust);font-variant-numeric:tabular-nums}
+.bar i{display:block;height:8px;border-radius:4px;background:linear-gradient(90deg,var(--ember),var(--torch-hi))}
+.bar span:last-child{text-align:right}
+.progress{height:4px;border-radius:2px;background:var(--stone-3);overflow:hidden;margin:12px 0}
+.progress i{display:block;height:100%;width:0;background:var(--spirit);transition:width .1s}
+.mc-out{font-size:13px;color:var(--dust)}
+.mc-out .big{font:700 24px/1.1 var(--font-display);color:var(--spirit);font-variant-numeric:tabular-nums}
+.mc-out .big small{font-size:14px;color:var(--dust);margin-left:6px}
+.mc-out p{margin:6px 0 10px}
+.statgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 16px;font-size:13px}
+.statgrid div{display:flex;justify-content:space-between;gap:8px;color:var(--dust)}
+.statgrid b{color:var(--sand);font-variant-numeric:tabular-nums}
+
+@media (max-width: 1000px){
+  .dock-inner{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-areas:"bal bet win" "chips chips chips" "act act start";gap:8px 12px}
+  .start{min-width:0;width:100%;height:46px}
+  .actions .btn{flex:1;padding:0 6px}
+}
+@media (max-width: 600px){
+  .brand p{display:none}
+  .brand h1{font-size:15px}
+  .top-inner{padding-block:8px;gap:8px}
+  .top-controls{gap:6px}
+  .seg button{padding:8px 7px;min-width:30px;font-size:12px}
+  .icon-btn{width:32px;height:32px}
+  .ledger-btn{height:32px;padding:0 10px;font-size:13px;letter-spacing:.08em}
+  .toast{top:auto;bottom:52px}
+  .hud{max-width:calc(100% - 128px)}
+  .paytable{padding:7px 9px;min-width:0}
+  .pt-title{display:none}
+  .pt-list li{font-size:11px;padding:2px 4px;gap:8px}
+  .stat .v{font-size:17px}
+  .hint{font-size:11px;bottom:8px}
+  .toast .t-big{font-size:var(--step-3)}
+}
+@media (prefers-reduced-motion: reduce){
+  .toast,.drawer,.hint{transition:none}
+  .flash.on{animation:none}
+  .veil-ring{animation:none}
+}
+</style>
+
+<div class="app" id="app">
+  <header class="top">
+    <div class="band-inner top-inner">
+      <div class="brand">
+        <svg class="sigil" viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="3" width="26" height="26" rx="3" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".5"/><rect x="6.5" y="18.5" width="6" height="6" rx="1" fill="currentColor" opacity=".5"/><rect x="19.5" y="7.5" width="6" height="6" rx="1" fill="currentColor" opacity=".5"/><rect x="13" y="12" width="6" height="6" rx="1" fill="currentColor"/><path d="M16 28.5V4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <div class="brand-text">
+          <h1>Chamber of Stone Matrix</h1>
+          <p>石陣密室 · 可玩原型 v0.1</p>
+        </div>
+      </div>
+      <nav class="top-controls" aria-label="密室設定">
+        <div class="seg" id="modeSeg" role="group" aria-label="維度">
+          <button type="button" id="mode25" data-mode="2.5D" aria-pressed="false">2.5D</button>
+          <button type="button" id="mode3" data-mode="3D" aria-pressed="true">3D</button>
+        </div>
+        <div class="seg" id="sizeSeg" role="group" aria-label="密室邊長">
+          <button type="button" id="size3" data-n="3" aria-pressed="false" aria-label="邊長 3">3</button>
+          <button type="button" id="size4" data-n="4" aria-pressed="true" aria-label="邊長 4">4</button>
+          <button type="button" id="size5" data-n="5" aria-pressed="false" aria-label="邊長 5">5</button>
+          <button type="button" id="size6" data-n="6" aria-pressed="false" aria-label="邊長 6">6</button>
+        </div>
+        <button type="button" class="icon-btn" id="viewBtn" title="重置視角" aria-label="重置視角"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.6 12a7.4 7.4 0 1 0 2.2-5.3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M4.2 4.4v4.2h4.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button type="button" class="icon-btn" id="soundBtn" title="音效" aria-label="音效" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.2h3.6L12.4 5v14l-4.8-4.2H4z" fill="currentColor"/><path class="wave" d="M15.6 8.6a4.8 4.8 0 0 1 0 6.8M18.2 6a8.4 8.4 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path class="mute" d="M15.8 9.2l5 5.6M20.8 9.2l-5 5.6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button>
+        <button type="button" class="ledger-btn" id="mathBtn" aria-controls="drawer" aria-expanded="false">數學</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <canvas id="gl" aria-label="石陣密室場景：點地面或側牆的符文格放置光柱"></canvas>
+    <div class="labels" id="labels" aria-hidden="true"></div>
+    <div class="hud" id="hud"><div class="hud-row" id="hudRow"></div><div class="history" id="history" aria-label="近期每局淨結果"></div></div>
+    <aside class="paytable" id="paytable" aria-label="光柱賠率"></aside>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <p class="hint" id="hint"></p>
+    <div class="flash" id="flash"></div>
+    <div class="veil" id="veil"><div class="veil-inner"><div class="veil-ring"></div><p id="veilText">正在點亮密室…</p></div></div>
+  </main>
+
+  <footer class="dock">
+    <div class="band-inner dock-inner">
+      <div class="stat stat-bal"><span class="k">餘額</span><span class="v" id="balance">10,000</span></div>
+      <div class="chips-wrap"><span class="k">每格注額</span><div class="chips" id="chips" role="group" aria-label="每格注額"></div></div>
+      <div class="stat stat-bet"><span class="k">下注</span><span class="v" id="betInfo">0 道 · 0</span></div>
+      <div class="actions">
+        <button type="button" class="btn" id="clearBtn">清除</button>
+        <button type="button" class="btn" id="autoBtn" aria-pressed="false">自動</button>
+        <button type="button" class="btn" id="turboBtn" aria-pressed="false">快速</button>
+      </div>
+      <button type="button" class="start" id="startBtn"><span class="start-cn">開始</span><span class="start-sub">SPACE</span></button>
+      <div class="stat stat-win"><span class="k">贏分</span><span class="v" id="lastWin">—</span></div>
+    </div>
+  </footer>
+</div>
+
+<aside class="drawer" id="drawer" aria-hidden="true" aria-label="數學帳本">
+  <div class="drawer-head">
+    <h2>數學帳本</h2>
+    <button type="button" class="icon-btn" id="drawerClose" aria-label="關閉數學帳本"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+  </div>
+  <div class="drawer-body" id="mathBody"></div>
+</aside>
+<div class="scrim" id="scrim" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* ================= helpers ================= */
+  const $ = (s, r) => (r || document).querySelector(s);
+  const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+  const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+  const easeOutBack = (t) => { const c1 = 1.35, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  const fmt = (n) => (Math.round(n * 100) / 100).toLocaleString('en-US', { maximumFractionDigits: 2 });
+  const fmtPct = (p, d) => (p * 100).toFixed(d === undefined ? 4 : d) + '%';
+  const fmtOdds = (o) => (Number.isInteger(o) ? String(o) : String(Math.round(o * 100) / 100));
+  const fmtOneIn = (x) => (!isFinite(x) ? '—' : x < 10 ? x.toFixed(2) : x < 1000 ? x.toFixed(1) : Math.round(x).toLocaleString('en-US'));
+  const REDUCED = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+
+  /* ================= storage (per-viewer convenience only) ================= */
+  const STORE_KEY = 'chamber-of-stone-matrix.v1';
+  function readStore() { try { const s = window.localStorage.getItem(STORE_KEY); return s ? JSON.parse(s) : {}; } catch (e) { return {}; } }
+  function writeStore() { try { window.localStorage.setItem(STORE_KEY, JSON.stringify(persistable())); } catch (e) { /* storage unavailable */ } }
+  function persistable() {
+    return { balance: state.balance, chip: state.chip, mode: state.mode, N: state.N, sound: state.sound, turbo: state.turbo,
+      backWall: state.backWall, overrides: state.overrides, stats: state.stats, history: state.history };
+  }
+
+  /* ================= RNG: sfc32 seeded from crypto ================= */
+  const rng = (function () {
+    const s = new Uint32Array(4);
+    try { crypto.getRandomValues(s); } catch (e) { for (let i = 0; i < 4; i++) s[i] = (Math.random() * 4294967296) >>> 0; }
+    let a = s[0], b = s[1], c = s[2], d = s[3];
+    const f = function () {
+      a |= 0; b |= 0; c |= 0; d |= 0;
+      const t = (((a + b) | 0) + d) | 0;
+      d = (d + 1) | 0; a = b ^ (b >>> 9); b = (c + (c << 3)) | 0; c = (c << 21) | (c >>> 11); c = (c + t) | 0;
+      return (t >>> 0) / 4294967296;
+    };
+    for (let i = 0; i < 24; i++) f();
+    return f;
+  })();
+
+  /* ================= exact math =================
+     Each round draws uniformly from all stone sets of size <= M among n cells.
+     A beam covers L cells: P(k) = C(L,k) * S(n-L, M-k) / S(n, M), S(n,M) = sum_{j<=M} C(n,j). */
+  const MathModel = (function () {
+    const cache = new Map();
+    function C(n, k) {
+      if (k < 0 || k > n) return 0n;
+      if (k > n - k) k = n - k;
+      const key = n * 4096 + k;
+      const hit = cache.get(key);
+      if (hit !== undefined) return hit;
+      let r = 1n;
+      for (let i = 1; i <= k; i++) r = (r * BigInt(n - k + i)) / BigInt(i);
+      cache.set(key, r);
+      return r;
+    }
+    function S(n, M) { let s = 0n; const top = Math.min(M, n); for (let j = 0; j <= top; j++) s += C(n, j); return s; }
+    const SCALE = 1000000000000000000n;
+    function ratio(num, den) { return den === 0n ? 0 : Number((num * SCALE) / den) / 1e18; }
+    function compute(n, L, M, odds) {
+      M = Math.max(0, Math.min(M, n));
+      const den = S(n, M);
+      const rows = [];
+      for (let k = 0; k <= L; k++) {
+        const num = k <= M ? C(L, k) * S(n - L, M - k) : 0n;
+        rows.push({ k, p: ratio(num, den), oneIn: num > 0n ? Number((den * 1000n) / num) / 1000 : Infinity, odds: Number(odds[k]) || 0 });
+      }
+      let rtp = 0, ex2 = 0;
+      for (const r of rows) { rtp += r.p * r.odds; ex2 += r.p * r.odds * r.odds; }
+      const mDist = []; let Em = 0;
+      for (let m = 0; m <= M; m++) { const p = ratio(C(n, m), den); mDist.push(p); Em += m * p; }
+      const mCum = []; let acc = 0;
+      for (let m = 0; m <= M; m++) { acc += mDist[m]; mCum.push(acc); }
+      mCum[M] = 1;
+      return { n, L, M, rows, rtp, sigma: Math.sqrt(Math.max(0, ex2 - rtp * rtp)), hit: 1 - rows[0].p, mDist, mCum, Em };
+    }
+    return { compute };
+  })();
+
+  /* ================= config & state ================= */
+  const SIZES = [3, 4, 5, 6];
+  const CHIPS = [1, 5, 10, 25, 100];
+  const START_BALANCE = 10000;
+  const PDF_RTP = { 3: 0.9, 4: 0.920143, 5: 0.94692 };
+  function defaultParams(mode, N) { const odds = [0]; for (let k = 1; k < N; k++) odds.push(k); odds.push(N * N); return { M: mode === '2.5D' ? N : N * N - 1, odds }; }
+  function dims(mode, N) { return mode === '2.5D' ? { X: N, Y: N, Z: 1 } : { X: N, Y: N, Z: N }; }
+
+  const state = {
+    mode: '3D', N: 4, balance: START_BALANCE, chip: 10, sound: true, turbo: REDUCED, backWall: false, bonus: false,
+    overrides: {}, bets: new Map(), results: new Map(), phase: 'idle', auto: false,
+    stats: { rounds: 0, bet: 0, win: 0, maxWin: 0, lines: 0 }, history: [],
+  };
+  let model = null, modelBonus = null;
+
+  function cfgKey() { return state.mode + '|' + state.N; }
+  function nCells() { const d = dims(state.mode, state.N); return d.X * d.Y * d.Z; }
+  function maxM() { return Math.max(1, Math.floor(nCells() * 0.6)); }
+  function params() {
+    const d = defaultParams(state.mode, state.N);
+    const o = state.overrides[cfgKey()];
+    if (!o) return d;
+    const M = Number.isFinite(+o.M) ? clamp(Math.round(+o.M), 1, maxM()) : d.M;
+    const odds = d.odds.map((v, k) => (o.odds && o.odds[k] !== undefined && o.odds[k] !== null && Number.isFinite(+o.odds[k]) ? Math.max(0, +o.odds[k]) : v));
+    return { M, odds };
+  }
+  function setOverride(patch) {
+    const cur = params();
+    const next = { M: patch.M !== undefined ? patch.M : cur.M, odds: patch.odds !== undefined ? patch.odds : cur.odds };
+    const d = defaultParams(state.mode, state.N);
+    if (next.M === d.M && next.odds.every((v, k) => v === d.odds[k])) delete state.overrides[cfgKey()];
+    else state.overrides[cfgKey()] = next;
+  }
+  function recomputeModel() {
+    const p = params(), n = nCells();
+    model = MathModel.compute(n, state.N, p.M, p.odds);
+    modelBonus = MathModel.compute(n, state.N, Math.min(p.M + 1, n), p.odds);
+  }
+  function activeModel() { return state.bonus ? modelBonus : model; }
+  function isBusy() { return state.phase === 'running' || state.phase === 'settling' || state.phase === 'firing'; }
+  function totalBet() { let t = 0; for (const v of state.bets.values()) t += v; return t; }
+  function timings() {
+    return state.turbo
+      ? { run: 620, runRamp: 220, settle: 330, settleStagger: 150, beamStagger: 26, beamGrow: 210, beamBudget: 900, ghostEvery: 28 }
+      : { run: 1750, runRamp: 480, settle: 650, settleStagger: 420, beamStagger: 95, beamGrow: 440, beamBudget: 2600, ghostEvery: 52 };
+  }
+
+  let scratch = null;
+  function sampleStones(mdl) {
+    const n = mdl.n;
+    if (!scratch || scratch.length !== n) scratch = new Int16Array(n);
+    for (let i = 0; i < n; i++) scratch[i] = i;
+    const u = rng();
+    let m = 0;
+    while (m < mdl.M && u > mdl.mCum[m]) m++;
+    for (let i = 0; i < m; i++) { const j = i + Math.floor(rng() * (n - i)); const t = scratch[i]; scratch[i] = scratch[j]; scratch[j] = t; }
+    return Array.from(scratch.subarray(0, m));
+  }
+
+  /* ================= sound (WebAudio, synthesized) ================= */
+  const sfx = (function () {
+    let ctx = null, master = null, noiseBuf = null, ambientOn = false, whisperTimer = 0;
+    function ensure() {
+      if (!state.sound) return false;
+      if (!ctx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return false;
+        try { ctx = new AC(); } catch (e) { ctx = null; return false; }
+        master = ctx.createGain(); master.gain.value = 0.7; master.connect(ctx.destination);
+        noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+        const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      }
+      if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+      if (!ambientOn) startAmbient();
+      return true;
+    }
+    function live() { return !!(ctx && state.sound); }
+    function startAmbient() {
+      ambientOn = true;
+      const t = ctx.currentTime;
+      const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.075, t + 3); g.connect(master);
+      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 360; lp.Q.value = 0.7; lp.connect(g);
+      [[55, 'sine', 0.6, 0], [82.41, 'triangle', 0.3, 5], [110, 'sine', 0.22, -7]].forEach(function (v) {
+        const o = ctx.createOscillator(); o.type = v[1]; o.frequency.value = v[0]; o.detune.value = v[3];
+        const og = ctx.createGain(); og.gain.value = v[2]; o.connect(og); og.connect(lp); o.start();
+      });
+      const lfo = ctx.createOscillator(); lfo.frequency.value = 0.07; const lg = ctx.createGain(); lg.gain.value = 140; lfo.connect(lg); lg.connect(lp.frequency); lfo.start();
+      const n = ctx.createBufferSource(); n.buffer = noiseBuf; n.loop = true;
+      const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 500; bp.Q.value = 0.6;
+      const ng = ctx.createGain(); ng.gain.value = 0.018; n.connect(bp); bp.connect(ng); ng.connect(master); n.start();
+      const lfo2 = ctx.createOscillator(); lfo2.frequency.value = 0.045; const lg2 = ctx.createGain(); lg2.gain.value = 240; lfo2.connect(lg2); lg2.connect(bp.frequency); lfo2.start();
+      scheduleWhisper();
+    }
+    function scheduleWhisper() {
+      clearTimeout(whisperTimer);
+      whisperTimer = setTimeout(function () { if (live() && document.visibilityState === 'visible') whisper(); scheduleWhisper(); }, 4500 + Math.random() * 7000);
+    }
+    function whisper() {
+      const t = ctx.currentTime, notes = [659.25, 783.99, 880, 987.77, 1174.66];
+      const f = notes[(Math.random() * notes.length) | 0] * (Math.random() < 0.3 ? 0.5 : 1);
+      const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = f;
+      const vib = ctx.createOscillator(); vib.frequency.value = 5 + Math.random() * 2; const vg = ctx.createGain(); vg.gain.value = f * 0.006; vib.connect(vg); vg.connect(o.frequency);
+      const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.022, t + 1.2); g.gain.exponentialRampToValueAtTime(0.0001, t + 4);
+      o.connect(g); g.connect(master); o.start(t); vib.start(t); o.stop(t + 4.1); vib.stop(t + 4.1);
+    }
+    function tone(f0, f1, dur, type, vol, delay) {
+      if (!live()) return;
+      const t = ctx.currentTime + (delay || 0);
+      const o = ctx.createOscillator(); o.type = type || 'sine'; o.frequency.setValueAtTime(f0, t);
+      if (f1 && f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+      const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.05);
+    }
+    function noise(dur, f0, f1, q, vol, type, delay) {
+      if (!live()) return;
+      const t = ctx.currentTime + (delay || 0);
+      const s = ctx.createBufferSource(); s.buffer = noiseBuf; s.loop = true;
+      const f = ctx.createBiquadFilter(); f.type = type || 'bandpass'; f.Q.value = q; f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(f1, t + dur);
+      const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + Math.min(0.08, dur * 0.3)); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      s.connect(f); f.connect(g); g.connect(master); s.start(t, Math.random() * 1.5); s.stop(t + dur + 0.05);
+    }
+    const PENTA = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.5];
+    document.addEventListener('visibilitychange', function () {
+      if (!ctx) return;
+      if (document.visibilityState === 'hidden') ctx.suspend().catch(() => {}); else if (state.sound) ctx.resume().catch(() => {});
+    });
+    return {
+      ensure,
+      setEnabled(v) { if (!ctx) return; master.gain.cancelScheduledValues(ctx.currentTime); master.gain.setValueAtTime(master.gain.value, ctx.currentTime); master.gain.linearRampToValueAtTime(v ? 0.7 : 0, ctx.currentTime + 0.25); },
+      select() { tone(620, 930, 0.09, 'sine', 0.12); tone(1240, 1240, 0.06, 'triangle', 0.03, 0.01); },
+      deselect() { tone(520, 300, 0.1, 'sine', 0.1); },
+      tick() { tone(1400, 1400, 0.03, 'square', 0.015); },
+      start() { noise(0.7, 260, 2400, 0.9, 0.16); tone(110, 220, 0.6, 'triangle', 0.08); },
+      rumble(ms) { noise(ms / 1000, 130, 90, 0.7, 0.12, 'lowpass'); },
+      thunk() { tone(150, 55, 0.16, 'sine', 0.15); noise(0.05, 1800, 600, 1.2, 0.04); },
+      beam() { tone(330, 990, 0.32, 'sawtooth', 0.022); noise(0.3, 900, 3200, 4, 0.025); },
+      hit(n) { const f = PENTA[Math.min(PENTA.length - 1, n - 1)]; tone(f, f, 0.5, 'triangle', 0.11); tone(f * 2, f * 2, 0.3, 'sine', 0.03); },
+      win(big) {
+        const seq = big ? [523.25, 659.25, 783.99, 1046.5, 1318.5, 1567.98] : [659.25, 783.99, 1046.5];
+        seq.forEach(function (f, i) { tone(f, f, big ? 0.55 : 0.35, 'triangle', big ? 0.12 : 0.09, i * 0.085); });
+        if (big) noise(1.4, 3000, 8000, 0.7, 0.03, 'highpass', 0.1);
+      },
+      lose() { tone(196, 147, 0.4, 'sine', 0.06); },
+    };
+  })();
+
+  /* ================= three.js core ================= */
+  const R = {};
+  let W = null;
+  let _v, _v2, _q, _e, UP, SPIRIT, GOLD, TILE_C;
+  const cam = { az: -0.66, el: 0.5, zoom: 1, tAz: -0.66, tEl: 0.5, tZoom: 1, target: null, fitR: 12 };
+
+  function col(hex) { return new THREE.Color(hex).convertSRGBToLinear(); }
+  function makeCanvas(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+  function canvasTex(c, srgb) { const t = new THREE.CanvasTexture(c); if (srgb !== false) t.encoding = THREE.sRGBEncoding; t.anisotropy = Math.min(8, R.maxAniso || 1); return t; }
+  function radialTexture(size, stops) {
+    const c = makeCanvas(size, size), x = c.getContext('2d');
+    const g = x.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+    stops.forEach(function (s) { g.addColorStop(s[0], s[1]); });
+    x.fillStyle = g; x.fillRect(0, 0, size, size);
+    return canvasTex(c);
+  }
+  function roundRectPath(x, x0, y0, w, h, r) {
+    x.beginPath(); x.moveTo(x0 + r, y0); x.lineTo(x0 + w - r, y0); x.quadraticCurveTo(x0 + w, y0, x0 + w, y0 + r);
+    x.lineTo(x0 + w, y0 + h - r); x.quadraticCurveTo(x0 + w, y0 + h, x0 + w - r, y0 + h); x.lineTo(x0 + r, y0 + h);
+    x.quadraticCurveTo(x0, y0 + h, x0, y0 + h - r); x.lineTo(x0, y0 + r); x.quadraticCurveTo(x0, y0, x0 + r, y0); x.closePath();
+  }
+  function masonryTexture(cols, rows, px, pal) {
+    const W2 = cols * px, H2 = rows * px, c = makeCanvas(W2, H2), x = c.getContext('2d');
+    x.fillStyle = pal.grout; x.fillRect(0, 0, W2, H2);
+    for (let r = 0; r < rows; r++) for (let q = 0; q < cols; q++) {
+      const gx = q * px, gy = r * px, gap = Math.max(2, px * 0.05);
+      x.save();
+      roundRectPath(x, gx + gap, gy + gap, px - 2 * gap, px - 2 * gap, px * 0.06); x.clip();
+      x.fillStyle = pal.base[(Math.random() * pal.base.length) | 0]; x.fillRect(gx, gy, px, px);
+      for (let i = 0; i < 14; i++) {
+        const bx = gx + Math.random() * px, by = gy + Math.random() * px, br = px * (0.08 + Math.random() * 0.3);
+        const g = x.createRadialGradient(bx, by, 0, bx, by, br); const dark = Math.random() < 0.55;
+        g.addColorStop(0, dark ? 'rgba(0,0,0,0.16)' : 'rgba(255,236,200,0.10)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+        x.fillStyle = g; x.fillRect(bx - br, by - br, 2 * br, 2 * br);
+      }
+      for (let i = 0; i < px * 1.4; i++) {
+        x.fillStyle = Math.random() < 0.5 ? 'rgba(0,0,0,' + (Math.random() * 0.25).toFixed(3) + ')' : 'rgba(255,240,210,' + (Math.random() * 0.12).toFixed(3) + ')';
+        const s = Math.random() * 1.8 + 0.4; x.fillRect(gx + Math.random() * px, gy + Math.random() * px, s, s);
+      }
+      const lg = x.createLinearGradient(gx, gy, gx + px, gy + px);
+      lg.addColorStop(0, 'rgba(255,230,190,0.10)'); lg.addColorStop(0.5, 'rgba(0,0,0,0)'); lg.addColorStop(1, 'rgba(0,0,0,0.25)');
+      x.fillStyle = lg; x.fillRect(gx, gy, px, px);
+      if (Math.random() < 0.45) {
+        x.strokeStyle = 'rgba(0,0,0,0.35)'; x.lineWidth = 1.2; x.beginPath();
+        let cx = gx + Math.random() * px, cy = gy + Math.random() * px; x.moveTo(cx, cy);
+        for (let s = 0; s < 5; s++) { cx += (Math.random() - 0.5) * px * 0.25; cy += (Math.random() - 0.5) * px * 0.25; x.lineTo(cx, cy); }
+        x.stroke();
+      }
+      x.restore();
+    }
+    return canvasTex(c);
+  }
+  function runeTileTexture() {
+    const S = 256, c = makeCanvas(S, S), x = c.getContext('2d');
+    x.translate(S / 2, S / 2);
+    const g = x.createRadialGradient(0, 0, 0, 0, 0, S * 0.42);
+    g.addColorStop(0, 'rgba(255,255,255,0.30)'); g.addColorStop(0.7, 'rgba(255,255,255,0.08)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = g; x.beginPath(); x.arc(0, 0, S * 0.42, 0, Math.PI * 2); x.fill();
+    x.strokeStyle = '#fff'; x.fillStyle = '#fff'; x.lineCap = 'round'; x.lineJoin = 'round';
+    x.lineWidth = 7; x.beginPath(); x.arc(0, 0, S * 0.4, 0, Math.PI * 2); x.stroke();
+    x.lineWidth = 2.5; x.beginPath(); x.arc(0, 0, S * 0.32, 0, Math.PI * 2); x.stroke();
+    for (let i = 0; i < 24; i++) {
+      const a = (i / 24) * Math.PI * 2, r1 = S * 0.335, r2 = S * (i % 2 ? 0.36 : 0.385);
+      x.lineWidth = i % 2 ? 2 : 3.5; x.beginPath(); x.moveTo(Math.cos(a) * r1, Math.sin(a) * r1); x.lineTo(Math.cos(a) * r2, Math.sin(a) * r2); x.stroke();
+    }
+    x.lineWidth = 5; x.beginPath(); x.moveTo(0, -S * 0.2); x.lineTo(S * 0.2, 0); x.lineTo(0, S * 0.2); x.lineTo(-S * 0.2, 0); x.closePath(); x.stroke();
+    x.lineWidth = 3; x.beginPath(); x.arc(0, 0, S * 0.07, 0, Math.PI * 2); x.stroke();
+    x.beginPath(); x.arc(0, 0, S * 0.025, 0, Math.PI * 2); x.fill();
+    x.setTransform(1, 0, 0, 1, 0, 0);
+    x.lineWidth = 5; const m = 10, L = 34;
+    [[m, m, 1, 1], [S - m, m, -1, 1], [m, S - m, 1, -1], [S - m, S - m, -1, -1]].forEach(function (p) {
+      x.beginPath(); x.moveTo(p[0], p[1] + p[3] * L); x.lineTo(p[0], p[1]); x.lineTo(p[0] + p[2] * L, p[1]); x.stroke();
+    });
+    return canvasTex(c);
+  }
+  function makeGlyph(seed) {
+    let s = (seed * 7919 + 104729) % 233280;
+    const r = function () { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+    const ops = [];
+    const a0 = r() * Math.PI * 2;
+    ops.push({ t: 'arc', r: 0.27, a0: a0, a1: a0 + Math.PI * (1.1 + r() * 0.7) });
+    ops.push({ t: 'line', pts: [[0, -0.3], [0, 0.3]] });
+    const nb = 2 + Math.floor(r() * 2);
+    for (let i = 0; i < nb; i++) { const y = (r() - 0.5) * 0.4, dir = r() < 0.5 ? -1 : 1; ops.push({ t: 'line', pts: [[0, y], [dir * 0.18, y - 0.12]] }); }
+    if (r() < 0.75) ops.push({ t: 'dot', p: [(r() < 0.5 ? -1 : 1) * 0.15, 0.22] });
+    if (r() < 0.5) ops.push({ t: 'poly', pts: [[-0.08, 0], [0, -0.09], [0.08, 0], [0, 0.09]] });
+    return ops;
+  }
+  function drawGlyph(x, ops, k) {
+    for (const o of ops) {
+      x.beginPath();
+      if (o.t === 'arc') x.arc(0, 0, o.r * k, o.a0, o.a1);
+      else if (o.t === 'dot') x.arc(o.p[0] * k, o.p[1] * k, 0.022 * k, 0, Math.PI * 2);
+      else { x.moveTo(o.pts[0][0] * k, o.pts[0][1] * k); for (let i = 1; i < o.pts.length; i++) x.lineTo(o.pts[i][0] * k, o.pts[i][1] * k); if (o.t === 'poly') x.closePath(); }
+      x.stroke();
+    }
+  }
+  function stoneTexturePair(seed) {
+    const S = 256, c = makeCanvas(S, S), x = c.getContext('2d');
+    const bases = ['#8e7c62', '#867358', '#958369', '#806e57', '#8a7a64', '#7d6c55'];
+    x.fillStyle = bases[seed % bases.length]; x.fillRect(0, 0, S, S);
+    for (let i = 0; i < 40; i++) {
+      const bx = Math.random() * S, by = Math.random() * S, br = S * (0.05 + Math.random() * 0.25);
+      const g = x.createRadialGradient(bx, by, 0, bx, by, br); const dark = Math.random() < 0.5;
+      g.addColorStop(0, dark ? 'rgba(40,25,10,0.22)' : 'rgba(255,240,210,0.14)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+      x.fillStyle = g; x.fillRect(bx - br, by - br, 2 * br, 2 * br);
+    }
+    for (let i = 0; i < 1600; i++) {
+      x.fillStyle = Math.random() < 0.55 ? 'rgba(0,0,0,' + (Math.random() * 0.22).toFixed(3) + ')' : 'rgba(255,245,220,' + (Math.random() * 0.14).toFixed(3) + ')';
+      const s = Math.random() * 2 + 0.4; x.fillRect(Math.random() * S, Math.random() * S, s, s);
+    }
+    const e = S * 0.09;
+    const edge = function (x0, y0, x1, y1) { const g = x.createLinearGradient(x0, y0, x1, y1); g.addColorStop(0, 'rgba(20,12,6,0.55)'); g.addColorStop(1, 'rgba(20,12,6,0)'); return g; };
+    x.fillStyle = edge(0, 0, 0, e); x.fillRect(0, 0, S, e);
+    x.fillStyle = edge(0, S, 0, S - e); x.fillRect(0, S - e, S, e);
+    x.fillStyle = edge(0, 0, e, 0); x.fillRect(0, 0, e, S);
+    x.fillStyle = edge(S, 0, S - e, 0); x.fillRect(S - e, 0, e, S);
+    const glyph = makeGlyph(seed + 1);
+    x.save(); x.translate(S / 2, S / 2); x.strokeStyle = 'rgba(25,14,6,0.85)'; x.lineWidth = 10; x.lineCap = 'round'; x.lineJoin = 'round'; drawGlyph(x, glyph, S); x.restore();
+    const ec = makeCanvas(S, S), ex = ec.getContext('2d');
+    ex.fillStyle = '#000'; ex.fillRect(0, 0, S, S);
+    ex.save(); ex.translate(S / 2, S / 2); ex.strokeStyle = '#fff'; ex.lineCap = 'round'; ex.lineJoin = 'round';
+    ex.shadowColor = '#fff'; ex.shadowBlur = 14; ex.lineWidth = 5; drawGlyph(ex, glyph, S);
+    ex.shadowBlur = 0; ex.lineWidth = 3; drawGlyph(ex, glyph, S); ex.restore();
+    return { map: canvasTex(c), em: canvasTex(ec) };
+  }
+
+  const PAL = {
+    floor: { grout: '#120d09', base: ['#5d4c39', '#64523d', '#584735', '#6b5842', '#544332'] },
+    wall: { grout: '#0f0b08', base: ['#4b3e31', '#534537', '#483b2e', '#57493b', '#41362b'] },
+    ground: { grout: '#0b0806', base: ['#2a221b', '#2e251d', '#272019', '#312820'] },
+  };
+
+  function initRenderer() {
+    let renderer;
+    try { renderer = new THREE.WebGLRenderer({ canvas: $('#gl'), antialias: true, powerPreference: 'high-performance' }); }
+    catch (e) { return false; }
+    if (!renderer || !renderer.getContext()) return false;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    R.renderer = renderer;
+    R.maxAniso = renderer.capabilities.getMaxAnisotropy();
+    R.scene = new THREE.Scene();
+    R.scene.background = new THREE.Color(0x0d0a07);
+    R.scene.fog = new THREE.FogExp2(col(0x0d0a07), 0.03);
+    R.camera = new THREE.PerspectiveCamera(38, 1, 0.1, 220);
+    R.raycaster = new THREE.Raycaster();
+    _v = new THREE.Vector3(); _v2 = new THREE.Vector3(); _q = new THREE.Quaternion(); _e = new THREE.Euler();
+    UP = new THREE.Vector3(0, 1, 0);
+    cam.target = new THREE.Vector3();
+    SPIRIT = col(0x86e3f2); GOLD = col(0xffc35a);
+    TILE_C = { idle: col(0x3e2a14), hover: col(0xb07a33), sel: col(0xffae46), selHover: col(0xffd789) };
+
+    R.scene.add(new THREE.HemisphereLight(col(0xffe2b8), col(0x140d08), 0.6));
+    R.scene.add(new THREE.AmbientLight(col(0x3b2b1c), 0.45));
+    R.key = new THREE.DirectionalLight(col(0xffe6c2), 1.25);
+    R.key.castShadow = true;
+    R.key.shadow.mapSize.set(2048, 2048);
+    R.key.shadow.bias = -0.0005;
+    R.key.shadow.normalBias = 0.02;
+    R.scene.add(R.key); R.scene.add(R.key.target);
+    R.fill = new THREE.DirectionalLight(col(0x7fb2ff), 0.22);
+    R.scene.add(R.fill);
+
+    R.beamGeo = new THREE.CylinderGeometry(1, 1, 1, 18, 1, true); R.beamGeo.translate(0, 0.5, 0);
+    R.tileGeo = new THREE.PlaneGeometry(0.9, 0.9);
+    R.glowGeo = new THREE.PlaneGeometry(1.5, 1.5);
+    R.stoneGeo = new THREE.BoxGeometry(0.72, 0.72, 0.72);
+    R.stoneEdgeGeo = new THREE.EdgesGeometry(R.stoneGeo);
+    R.cellEdgeGeo = new THREE.EdgesGeometry(new THREE.BoxGeometry(0.96, 0.96, 0.96));
+    R.sconceGeo = new THREE.BoxGeometry(0.14, 0.24, 0.14);
+    R.sconceMat = new THREE.MeshStandardMaterial({ color: col(0x2a221b), roughness: 0.55, metalness: 0.5 });
+    R.slabMat = new THREE.MeshStandardMaterial({ color: col(0x2c2219), roughness: 0.95 });
+    R.capMat = new THREE.MeshStandardMaterial({ color: col(0x433426), roughness: 0.9 });
+    R.flareTex = radialTexture(128, [[0, 'rgba(255,255,255,1)'], [0.22, 'rgba(255,236,190,0.9)'], [0.55, 'rgba(255,170,70,0.28)'], [1, 'rgba(255,140,40,0)']]);
+    R.dustTex = radialTexture(64, [[0, 'rgba(255,244,220,1)'], [0.35, 'rgba(255,224,170,0.55)'], [1, 'rgba(255,200,140,0)']]);
+    R.glowTex = radialTexture(128, [[0, 'rgba(255,255,255,0.95)'], [0.45, 'rgba(255,255,255,0.28)'], [1, 'rgba(255,255,255,0)']]);
+    R.tileTex = runeTileTexture();
+    R.stoneTex = [];
+    for (let v = 0; v < 6; v++) R.stoneTex.push(stoneTexturePair(v));
+    return true;
+  }
+
+  /* ================= world ================= */
+  function track(o) { W.disposables.push(o); return o; }
+  function buildLines(mode, N, back) {
+    const d = dims(mode, N), X = d.X, Y = d.Y, Z = d.Z;
+    const idx = function (i, j, k) { return i + X * (j + Y * k); };
+    const lines = [];
+    for (let k = 0; k < Z; k++) for (let i = 0; i < X; i++) { const cells = []; for (let j = 0; j < Y; j++) cells.push(idx(i, j, k)); lines.push({ key: 'F:' + i + ',' + k, face: 'F', i: i, j: -1, k: k, cells: cells }); }
+    for (let k = 0; k < Z; k++) for (let j = 0; j < Y; j++) { const cells = []; for (let i = X - 1; i >= 0; i--) cells.push(idx(i, j, k)); lines.push({ key: 'R:' + j + ',' + k, face: 'R', i: -1, j: j, k: k, cells: cells }); }
+    if (back && Z > 1) for (let j = 0; j < Y; j++) for (let i = 0; i < X; i++) { const cells = []; for (let k = 0; k < Z; k++) cells.push(idx(i, j, k)); lines.push({ key: 'B:' + i + ',' + j, face: 'B', i: i, j: j, k: -1, cells: cells }); }
+    return lines;
+  }
+  function lineGeom(ln) {
+    const X = W.X, Z = W.Z;
+    if (ln.face === 'F') { ln.origin = new THREE.Vector3(ln.i + 0.5 - X / 2, 0.02, ln.k + 0.5 - Z / 2); ln.dir = new THREE.Vector3(0, 1, 0); }
+    else if (ln.face === 'R') { ln.origin = new THREE.Vector3(X / 2 - 0.02, ln.j + 0.5, ln.k + 0.5 - Z / 2); ln.dir = new THREE.Vector3(-1, 0, 0); }
+    else { ln.origin = new THREE.Vector3(ln.i + 0.5 - X / 2, ln.j + 0.5, -Z / 2 + 0.02); ln.dir = new THREE.Vector3(0, 0, 1); }
+    ln.len = W.N + 0.7;
+  }
+  function cellPos(c, out) {
+    out = out || new THREE.Vector3();
+    const X = W.X, Y = W.Y;
+    const i = c % X, t = (c - i) / X, j = t % Y, k = (t - j) / Y;
+    return out.set(i + 0.5 - X / 2, j + 0.5, k + 0.5 - W.Z / 2);
+  }
+
+  function buildWorld() {
+    if (W) disposeWorld();
+    const N = state.N, mode = state.mode, d = dims(mode, N), X = d.X, Y = d.Y, Z = d.Z;
+    const group = new THREE.Group(); R.scene.add(group);
+    W = { N: N, mode: mode, X: X, Y: Y, Z: Z, group: group, disposables: [], tiles: [], tileMeshes: [], tileByKey: new Map(), lineByKey: new Map(),
+      lines: [], beams: new Map(), stones: [], cellStone: new Map(), home: new Map(), ghosts: [], ghostIdx: 0, flares: [], flareIdx: 0,
+      torches: [], guides: [], preview: null, hover: null, nextGlide: 0, nextGhost: 0, dust: null, lastThunk: 0, lastHit: 0 };
+    const H = Y + 1;
+
+    const gTex = track(masonryTexture(6, 6, 64, PAL.ground)); gTex.wrapS = gTex.wrapT = THREE.RepeatWrapping; gTex.repeat.set(10, 10);
+    const ground = new THREE.Mesh(track(new THREE.PlaneGeometry(80, 80)), track(new THREE.MeshStandardMaterial({ map: gTex, roughness: 0.96 })));
+    ground.rotation.x = -Math.PI / 2; ground.position.y = -0.14; ground.receiveShadow = true; group.add(ground);
+    const plinth = new THREE.Mesh(track(new THREE.BoxGeometry(X + 0.6, 0.136, Z + 0.6)), R.slabMat);
+    plinth.position.set(0, -0.072, 0); plinth.receiveShadow = true; group.add(plinth);
+    const floor = new THREE.Mesh(track(new THREE.PlaneGeometry(X, Z)), track(new THREE.MeshStandardMaterial({ map: track(masonryTexture(X, Z, 128, PAL.floor)), roughness: 0.92 })));
+    floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; group.add(floor);
+
+    W.backGroup = new THREE.Group(); group.add(W.backGroup);
+    const back = new THREE.Mesh(track(new THREE.PlaneGeometry(X, H)), track(new THREE.MeshStandardMaterial({ map: track(masonryTexture(X, H, 128, PAL.wall)), roughness: 0.9 })));
+    back.position.set(0, H / 2, -Z / 2); back.receiveShadow = true; W.backGroup.add(back);
+    const backSlab = new THREE.Mesh(track(new THREE.BoxGeometry(X + 0.4, H + 0.12, 0.4)), R.slabMat);
+    backSlab.position.set(0.2, (H + 0.12) / 2 - 0.12, -Z / 2 - 0.204); backSlab.receiveShadow = true; W.backGroup.add(backSlab);
+    const backCap = new THREE.Mesh(track(new THREE.BoxGeometry(X + 0.48, 0.08, 0.48)), R.capMat);
+    backCap.position.set(0.2, H + 0.04, -Z / 2 - 0.2); W.backGroup.add(backCap);
+
+    W.rightGroup = new THREE.Group(); group.add(W.rightGroup);
+    const right = new THREE.Mesh(track(new THREE.PlaneGeometry(Z, H)), track(new THREE.MeshStandardMaterial({ map: track(masonryTexture(Z, H, 128, PAL.wall)), roughness: 0.9 })));
+    right.rotation.y = -Math.PI / 2; right.position.set(X / 2, H / 2, 0); right.receiveShadow = true; W.rightGroup.add(right);
+    const rightSlab = new THREE.Mesh(track(new THREE.BoxGeometry(0.4, H + 0.12, Z + 0.4)), R.slabMat);
+    rightSlab.position.set(X / 2 + 0.204, (H + 0.12) / 2 - 0.12, -0.2); rightSlab.receiveShadow = true; W.rightGroup.add(rightSlab);
+    const rightCap = new THREE.Mesh(track(new THREE.BoxGeometry(0.48, 0.08, Z + 0.48)), R.capMat);
+    rightCap.position.set(X / 2 + 0.2, H + 0.04, -0.2); W.rightGroup.add(rightCap);
+
+    const outline = new THREE.LineSegments(track(new THREE.EdgesGeometry(track(new THREE.BoxGeometry(X, Y, Z)))), track(new THREE.LineBasicMaterial({ color: col(0xf2b04f), transparent: true, opacity: 0.22, depthWrite: false })));
+    outline.position.set(0, Y / 2, 0); group.add(outline);
+    if (mode === '2.5D') {
+      const pts = [];
+      for (let i = 0; i <= X; i++) { const xx = i - X / 2; pts.push(xx, 0, Z / 2, xx, Y, Z / 2); }
+      for (let j = 0; j <= Y; j++) pts.push(-X / 2, j, Z / 2, X / 2, j, Z / 2);
+      const gg = track(new THREE.BufferGeometry()); gg.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+      group.add(new THREE.LineSegments(gg, track(new THREE.LineBasicMaterial({ color: col(0xf2b04f), transparent: true, opacity: 0.1, depthWrite: false }))));
+    }
+
+    makeTorch(-X / 2 + 0.35, Y + 0.45, -Z / 2 + 0.1);
+    makeTorch(X / 2 - 0.35, Y + 0.45, -Z / 2 + 0.1);
+
+    W.lines = buildLines(mode, N, mode === '3D' && state.backWall);
+    for (const ln of W.lines) {
+      lineGeom(ln); W.lineByKey.set(ln.key, ln);
+      const t = makeTile(ln); W.tiles.push(t); W.tileMeshes.push(t.mesh); W.tileByKey.set(ln.key, t);
+    }
+    for (let i = 0; i < N; i++) {
+      const m = new THREE.LineSegments(R.cellEdgeGeo, track(new THREE.LineBasicMaterial({ color: col(0xffc768), transparent: true, opacity: 0.32, blending: THREE.AdditiveBlending, depthWrite: false })));
+      m.visible = false; group.add(m); W.guides.push(m);
+    }
+    for (let i = 0; i < 28; i++) {
+      const m = new THREE.LineSegments(R.cellEdgeGeo, track(new THREE.LineBasicMaterial({ color: col(0xffc768), transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false })));
+      m.visible = false; group.add(m); W.ghosts.push({ mesh: m, t0: 0, strength: 0 });
+    }
+    for (let i = 0; i < 32; i++) {
+      const sp = new THREE.Sprite(track(new THREE.SpriteMaterial({ map: R.flareTex, color: col(0xffd38a), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })));
+      sp.visible = false; sp.renderOrder = 6; group.add(sp); W.flares.push({ sprite: sp, t0: 0, scale: 1 });
+    }
+    W.preview = makeBeamFor(W.lines[0]); W.preview.g.visible = false;
+    makeDust();
+
+    const rr = Math.max(X, Y + 1, Z);
+    R.key.position.set(-0.55 * rr, 2.4 * rr, 1.25 * rr); R.key.target.position.set(0, 0, 0);
+    const sc = R.key.shadow.camera; sc.left = -rr * 1.15; sc.right = rr * 1.15; sc.top = rr * 1.15; sc.bottom = -rr * 1.15; sc.near = 0.1; sc.far = rr * 7; sc.updateProjectionMatrix();
+    R.fill.position.set(rr * 1.2, rr * 0.8, rr * 2);
+
+    buildStones();
+  }
+  function disposeWorld() {
+    R.scene.remove(W.group);
+    for (const b of W.beams.values()) disposeBeam(b);
+    if (W.preview) disposeBeam(W.preview);
+    for (const s of W.stones) { s.mat.dispose(); s.edgeMat.dispose(); }
+    for (const o of W.disposables) { try { o.dispose(); } catch (e) { /* ignore */ } }
+    clearLabels();
+    W = null;
+  }
+  function makeTorch(x, y, z) {
+    const sconce = new THREE.Mesh(R.sconceGeo, R.sconceMat); sconce.position.set(x, y - 0.14, z); W.backGroup.add(sconce);
+    const flame = new THREE.Sprite(track(new THREE.SpriteMaterial({ map: R.flareTex, color: col(0xffa04a), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })));
+    flame.position.set(x, y + 0.08, z); flame.scale.set(0.42, 0.6, 1); W.backGroup.add(flame);
+    const light = new THREE.PointLight(col(0xff9445), 1.4, W.N * 3.4, 2); light.position.set(x, y + 0.1, z + 0.2); W.group.add(light);
+    W.torches.push({ flame: flame, light: light, seed: Math.random() * 100 });
+  }
+  function makeTile(ln) {
+    const mat = track(new THREE.MeshBasicMaterial({ map: R.tileTex, color: TILE_C.idle.clone(), transparent: true, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false }));
+    const mesh = new THREE.Mesh(R.tileGeo, mat);
+    const gmat = track(new THREE.MeshBasicMaterial({ map: R.glowTex, color: col(0xff9f3d), transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+    const glow = new THREE.Mesh(R.glowGeo, gmat); glow.visible = false;
+    const p = ln.origin.clone().addScaledVector(ln.dir, -0.008);
+    mesh.position.copy(p); glow.position.copy(p).addScaledVector(ln.dir, -0.002);
+    if (ln.face === 'F') { mesh.rotation.x = -Math.PI / 2; glow.rotation.x = -Math.PI / 2; }
+    else if (ln.face === 'R') { mesh.rotation.y = -Math.PI / 2; glow.rotation.y = -Math.PI / 2; }
+    mesh.renderOrder = 2; glow.renderOrder = 1;
+    mesh.userData.key = ln.key;
+    W.group.add(glow); W.group.add(mesh);
+    return { ln: ln, mesh: mesh, mat: mat, glow: glow, gmat: gmat, ph: Math.random() * 6.283, labelPos: ln.origin.clone().addScaledVector(ln.dir, 0.04), normal: ln.dir.clone() };
+  }
+  function makeDust() {
+    const count = REDUCED ? 40 : 90 + W.N * 30;
+    const pos = new Float32Array(count * 3), vel = new Float32Array(count * 3);
+    W.dust = { pos: pos, vel: vel, count: count, pts: null };
+    for (let i = 0; i < count; i++) resetDust(i, true);
+    const geo = track(new THREE.BufferGeometry()); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const mat = track(new THREE.PointsMaterial({ map: R.dustTex, size: 0.07, sizeAttenuation: true, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending, color: col(0xffd9a0) }));
+    W.dust.pts = new THREE.Points(geo, mat); W.group.add(W.dust.pts);
+  }
+  function resetDust(i, anywhere) {
+    const d = W.dust, m = 0.6;
+    d.pos[i * 3] = (Math.random() - 0.5) * (W.X + m * 2);
+    d.pos[i * 3 + 1] = anywhere ? Math.random() * (W.Y + 1.2) : -0.1;
+    d.pos[i * 3 + 2] = (Math.random() - 0.5) * (W.Z + m * 2);
+    d.vel[i * 3] = (Math.random() - 0.5) * 0.04; d.vel[i * 3 + 1] = 0.02 + Math.random() * 0.05; d.vel[i * 3 + 2] = (Math.random() - 0.5) * 0.04;
+  }
+  function updateDust(dt) {
+    const d = W.dust; if (!d) return;
+    const top = W.Y + 1.3, boost = state.phase === 'running' ? 4 : 1;
+    for (let i = 0; i < d.count; i++) {
+      d.pos[i * 3] += d.vel[i * 3] * dt * boost; d.pos[i * 3 + 1] += d.vel[i * 3 + 1] * dt * boost; d.pos[i * 3 + 2] += d.vel[i * 3 + 2] * dt * boost;
+      if (d.pos[i * 3 + 1] > top) resetDust(i, false);
+    }
+    d.pts.geometry.attributes.position.needsUpdate = true;
+  }
+  function updateTorches(now) {
+    for (const t of W.torches) {
+      const f = 0.82 + 0.12 * Math.sin(now * 0.011 + t.seed) + 0.08 * Math.sin(now * 0.027 + t.seed * 2.3) + 0.05 * (Math.random() - 0.5);
+      t.light.intensity = 1.4 * f; t.flame.scale.set(0.38 * f + 0.04, 0.6 * f, 1); t.flame.material.opacity = 0.75 + 0.25 * f;
+    }
+  }
+  function updateWallVisibility() {
+    const p = R.camera.position;
+    W.backGroup.visible = p.z > -W.Z / 2 + 0.05;
+    W.rightGroup.visible = p.x < W.X / 2 - 0.05;
+  }
+
+  /* ================= stones ================= */
+  function buildStones() {
+    for (const s of W.stones) { W.group.remove(s.mesh); s.mat.dispose(); s.edgeMat.dispose(); }
+    W.stones = []; W.home = new Map(); W.cellStone = new Map();
+    const n = W.X * W.Y * W.Z, count = Math.min(activeModel().M, n);
+    const cells = shuffle(Array.from({ length: n }, function (_, i) { return i; })).slice(0, count);
+    for (let i = 0; i < count; i++) {
+      const s = makeStone(i);
+      s.home = cells[i]; s.homePos = cellPos(cells[i]); W.home.set(cells[i], s);
+      s.mesh.position.copy(s.homePos);
+      W.stones.push(s);
+    }
+    W.nextGlide = performance.now() + 700;
+    if (state.phase === 'result') {
+      state.phase = 'idle'; state.results.clear(); refreshAllLabels();
+      for (const b of W.beams.values()) { b.state = 'spot'; b.res = null; }
+    }
+  }
+  function makeStone(i) {
+    const v = R.stoneTex[i % R.stoneTex.length];
+    const mat = new THREE.MeshStandardMaterial({ map: v.map, emissiveMap: v.em, emissive: SPIRIT.clone(), emissiveIntensity: 0.5, roughness: 0.84, metalness: 0.04 });
+    const mesh = new THREE.Mesh(R.stoneGeo, mat); mesh.castShadow = true; mesh.receiveShadow = true;
+    const edgeMat = new THREE.LineBasicMaterial({ color: col(0x1b120a), transparent: true, opacity: 0.6 });
+    mesh.add(new THREE.LineSegments(R.stoneEdgeGeo, edgeMat));
+    const baseYaw = Math.floor(Math.random() * 4) * Math.PI / 2;
+    mesh.rotation.set(0, baseYaw, 0);
+    W.group.add(mesh);
+    const X = W.X, Y = W.Y, Z = W.Z, r = Math.random;
+    return {
+      mesh: mesh, mat: mat, edgeMat: edgeMat, baseYaw: baseYaw,
+      amp: new THREE.Vector3((X / 2 - 0.5) * (0.55 + r() * 0.45), (Y / 2 - 0.5) * (0.55 + r() * 0.45), Z > 1 ? (Z / 2 - 0.5) * (0.55 + r() * 0.45) : 0.03),
+      freq: new THREE.Vector3(0.5 + r() * 0.6, 0.45 + r() * 0.55, 0.5 + r() * 0.6),
+      ph: new THREE.Vector3(r() * 6.283, r() * 6.283, r() * 6.283),
+      tau: r() * 50, spinAxis: new THREE.Vector3(r() - 0.5, r() - 0.5, r() - 0.5).normalize(), spin: 0.6 + r() * 0.8,
+      mode: 'drift', home: -1, homePos: null, target: null, cell: -1,
+      t0: 0, dur: 0, from: new THREE.Vector3(), ctrl: new THREE.Vector3(), qFrom: new THREE.Quaternion(), qTarget: new THREE.Quaternion(), started: false,
+      heat: 0, hold: 0, opacity: 1, bobPh: r() * 6.283,
+    };
+  }
+  function stoneDyn(s, out) {
+    return out.set(s.amp.x * Math.sin(s.freq.x * s.tau + s.ph.x), W.Y / 2 + s.amp.y * Math.sin(s.freq.y * s.tau + s.ph.y), s.amp.z * Math.sin(s.freq.z * s.tau + s.ph.z));
+  }
+  function bezier(a, c, b, t, out) {
+    const u = 1 - t;
+    return out.set(u * u * a.x + 2 * u * t * c.x + t * t * b.x, u * u * a.y + 2 * u * t * c.y + t * t * b.y, u * u * a.z + 2 * u * t * c.z + t * t * b.z);
+  }
+  function setStoneOpacity(s, o) {
+    s.opacity = o;
+    const tr = o < 0.999;
+    if (s.mat.transparent !== tr) { s.mat.transparent = tr; s.mat.needsUpdate = true; }
+    s.mat.opacity = o; s.edgeMat.opacity = 0.6 * o; s.mesh.castShadow = o > 0.35;
+  }
+  function updateStone(s, dt, now) {
+    switch (s.mode) {
+      case 'drift': {
+        const h = s.homePos;
+        s.mesh.position.set(h.x + 0.05 * Math.sin(now * 0.0009 + s.ph.x), h.y + 0.05 * Math.sin(now * 0.0011 + s.ph.y), h.z + (W.Z > 1 ? 0.05 * Math.sin(now * 0.0008 + s.ph.z) : 0));
+        _e.set(0.06 * Math.sin(now * 0.0007 + s.ph.y), s.baseYaw + 0.08 * Math.sin(now * 0.0005 + s.ph.x), 0.05 * Math.sin(now * 0.0006 + s.ph.z));
+        s.mesh.quaternion.setFromEuler(_e);
+        break;
+      }
+      case 'glide': {
+        const u = clamp((now - s.t0) / s.dur, 0, 1);
+        bezier(s.from, s.ctrl, s.homePos, easeInOutCubic(u), s.mesh.position);
+        if (u >= 1) s.mode = 'drift';
+        break;
+      }
+      case 'run': {
+        const u = clamp((now - s.t0) / timings().runRamp, 0, 1), sp = lerp(0.6, 4.6, easeInOutCubic(u));
+        s.tau += dt * sp;
+        stoneDyn(s, _v);
+        const b = clamp((now - s.t0) / 380, 0, 1);
+        if (b < 1) s.mesh.position.lerpVectors(s.from, _v, easeOutCubic(b)); else s.mesh.position.copy(_v);
+        s.mesh.rotateOnAxis(s.spinAxis, dt * s.spin * (1 + sp));
+        if (s.opacity < 1) setStoneOpacity(s, Math.min(1, s.opacity + dt * 2.5));
+        break;
+      }
+      case 'settle': {
+        if (now < s.t0) { s.tau += dt * 2.4; stoneDyn(s, s.mesh.position); s.mesh.rotateOnAxis(s.spinAxis, dt * s.spin * 3); break; }
+        if (!s.started) { s.started = true; s.from.copy(s.mesh.position); s.qFrom.copy(s.mesh.quaternion); s.ctrl.copy(s.from).add(s.target).multiplyScalar(0.5); s.ctrl.y += 0.6; }
+        const u = clamp((now - s.t0) / s.dur, 0, 1);
+        bezier(s.from, s.ctrl, s.target, easeOutBack(u), s.mesh.position);
+        s.mesh.quaternion.copy(s.qFrom).slerp(s.qTarget, easeOutCubic(u));
+        if (s.opacity < 1) setStoneOpacity(s, Math.min(1, s.opacity + dt * 3));
+        if (u >= 1) { s.mode = 'fixed'; if (s.opacity < 1) setStoneOpacity(s, 1); onStoneLanded(s, now); }
+        break;
+      }
+      case 'fixed': {
+        const t = s.target;
+        s.mesh.position.set(t.x, t.y + 0.03 * Math.sin(now * 0.0016 + s.bobPh), t.z);
+        _e.set(0.035 * Math.sin(now * 0.0011 + s.ph.y), s.baseYaw + 0.045 * Math.sin(now * 0.0009 + s.ph.z), 0.03 * Math.sin(now * 0.0013 + s.ph.x));
+        s.mesh.quaternion.setFromEuler(_e);
+        break;
+      }
+      case 'leave': {
+        if (now < s.t0) { s.tau += dt * 2.4; stoneDyn(s, s.mesh.position); s.mesh.rotateOnAxis(s.spinAxis, dt * s.spin * 3); break; }
+        if (!s.started) { s.started = true; s.from.copy(s.mesh.position); s.ctrl.set(s.from.x, W.Y + 1.0, s.from.z); }
+        const u = clamp((now - s.t0) / s.dur, 0, 1);
+        _v.set(s.from.x * 0.6, W.Y + 2.6, s.from.z * 0.6);
+        bezier(s.from, s.ctrl, _v, easeInOutCubic(u), s.mesh.position);
+        s.mesh.rotateOnAxis(s.spinAxis, dt * s.spin * 2);
+        setStoneOpacity(s, 1 - u);
+        if (u >= 1) { s.mode = 'gone'; s.mesh.visible = false; }
+        break;
+      }
+      default: break;
+    }
+    s.heat = Math.max(0, s.heat - dt * 1.5);
+    const g = Math.max(s.heat, s.hold);
+    s.mat.emissive.copy(SPIRIT).lerp(GOLD, clamp(g * 1.6, 0, 1));
+    s.mat.emissiveIntensity = 0.5 + g * 2.6;
+    s.mat.color.setRGB(1 + 0.45 * g, 1 + 0.25 * g, 1 + 0.05 * g);
+  }
+  function updateIdle(now) {
+    if (state.phase !== 'idle' || now < W.nextGlide) return;
+    W.nextGlide = now + (REDUCED ? 4000 : 900 + Math.random() * 1400);
+    const drifting = W.stones.filter(function (s) { return s.mode === 'drift'; });
+    if (!drifting.length) return;
+    const s = drifting[(Math.random() * drifting.length) | 0];
+    const n = W.X * W.Y * W.Z;
+    let c = -1;
+    for (let tries = 0; tries < 40; tries++) { const cand = (Math.random() * n) | 0; if (!W.home.has(cand)) { c = cand; break; } }
+    if (c < 0) return;
+    W.home.delete(s.home); s.home = c; W.home.set(c, s);
+    s.from.copy(s.mesh.position); s.homePos = cellPos(c);
+    s.ctrl.copy(s.from).add(s.homePos).multiplyScalar(0.5); s.ctrl.y += 0.5;
+    s.t0 = now; s.dur = 1600 + Math.random() * 900; s.mode = 'glide';
+  }
+  function beginRun(now) {
+    for (const s of W.stones) {
+      if (s.mode === 'gone') { s.mesh.visible = true; setStoneOpacity(s, 0); stoneDyn(s, s.from); s.mesh.position.copy(s.from); }
+      else s.from.copy(s.mesh.position);
+      s.mode = 'run'; s.t0 = now; s.hold = 0; s.started = false;
+    }
+  }
+  function assignTargets(cells, now) {
+    const T = timings(), free = W.stones.slice();
+    W.cellStone = new Map();
+    for (const c of shuffle(cells.slice())) {
+      const p = cellPos(c);
+      let bi = 0, bd = Infinity;
+      for (let i = 0; i < free.length; i++) { const dd = free[i].mesh.position.distanceToSquared(p); if (dd < bd) { bd = dd; bi = i; } }
+      const s = free.splice(bi, 1)[0];
+      if (!s) break;
+      s.mode = 'settle'; s.target = p; s.cell = c; s.t0 = now + Math.random() * T.settleStagger; s.dur = T.settle; s.started = false;
+      s.qTarget.setFromEuler(_e.set(0, s.baseYaw, 0));
+      W.cellStone.set(c, s);
+    }
+    for (const s of free) { s.mode = 'leave'; s.t0 = now + Math.random() * T.settleStagger * 0.5; s.dur = T.settle * 1.1; s.started = false; s.cell = -1; }
+  }
+  function onStoneLanded(s, now) {
+    spawnGhost(s.cell, 0.75);
+    if (now - W.lastThunk > 45) { sfx.thunk(); W.lastThunk = now; }
+  }
+
+  /* ================= beams, ghosts, flares ================= */
+  function makeBeamFor(ln) {
+    const g = new THREE.Group();
+    const mk = function (color, r) {
+      const m = new THREE.Mesh(R.beamGeo, new THREE.MeshBasicMaterial({ color: col(color), transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+      m.scale.set(r, 1, r); m.renderOrder = 4; g.add(m); return m;
+    };
+    const outer = mk(0xff8a36, 0.36), halo = mk(0xffbf5c, 0.17), core = mk(0xfff2d2, 0.055);
+    g.position.copy(ln.origin); g.quaternion.setFromUnitVectors(UP, ln.dir); g.scale.set(1, ln.len, 1);
+    W.group.add(g);
+    return { key: ln.key, ln: ln, g: g, core: core, halo: halo, outer: outer, state: 'spot', ph: Math.random() * 6.283, t0: 0, dur: 0, res: null, fired: 0, litAt: 0 };
+  }
+  function makeBeam(key) { return makeBeamFor(W.lineByKey.get(key)); }
+  function disposeBeam(b) { if (b.g.parent) b.g.parent.remove(b.g); [b.core, b.halo, b.outer].forEach(function (m) { m.material.dispose(); }); }
+  function updateBeam(b, now) {
+    const pulse = 0.5 + 0.5 * Math.sin(now * 0.0035 + b.ph);
+    if (b.state === 'spot') {
+      b.g.scale.y = b.ln.len;
+      b.core.material.opacity = 0.09 + 0.05 * pulse; b.halo.material.opacity = 0.035 + 0.02 * pulse; b.outer.material.opacity = 0.012;
+      return;
+    }
+    if (b.state === 'armed') {
+      if (now < b.t0) { b.g.scale.y = b.ln.len; b.core.material.opacity = 0.05; b.halo.material.opacity = 0.015; b.outer.material.opacity = 0; return; }
+      b.state = 'fire'; sfx.beam();
+    }
+    if (b.state === 'fire') {
+      const u = clamp((now - b.t0) / b.dur, 0, 1), front = u * b.ln.len;
+      b.g.scale.y = Math.max(0.001, front);
+      b.core.material.opacity = 1; b.halo.material.opacity = 0.42; b.outer.material.opacity = 0.16;
+      const r = b.res;
+      while (b.fired < r.hitsIdx.length && front >= r.hitsIdx[b.fired] + 0.5) { const cell = b.ln.cells[r.hitsIdx[b.fired]]; b.fired++; onBeamHit(b, cell, b.fired, now); }
+      if (u >= 1) { b.state = 'lit'; b.litAt = now; onBeamDone(b); }
+      return;
+    }
+    if (b.state === 'lit') {
+      const u = easeOutCubic(clamp((now - b.litAt) / 1500, 0, 1)), hit = b.res && b.res.k > 0;
+      b.g.scale.y = b.ln.len;
+      b.core.material.opacity = lerp(1, hit ? 0.5 : 0.12, u) * (0.92 + 0.08 * pulse);
+      b.halo.material.opacity = lerp(0.42, hit ? 0.16 : 0.03, u);
+      b.outer.material.opacity = lerp(0.16, hit ? 0.06 : 0.01, u);
+    }
+  }
+  function finalizeBeams() {
+    for (const b of W.beams.values()) {
+      if (!b.res || b.state === 'lit') continue;
+      const r = b.res;
+      while (b.fired < r.hitsIdx.length) { const s = W.cellStone.get(b.ln.cells[r.hitsIdx[b.fired]]); if (s) s.hold = Math.max(s.hold, 0.55); b.fired++; }
+      b.state = 'lit'; b.litAt = performance.now() - 1500; onBeamDone(b, true);
+    }
+  }
+  function onBeamHit(b, cell, n, now) {
+    const s = W.cellStone.get(cell);
+    if (s) { s.heat = 1.25; s.hold = Math.max(s.hold, 0.55); spawnFlare(s.mesh.position, n >= W.N ? 2.2 : 1.2); }
+    if (now - W.lastHit > 28) { sfx.hit(n); W.lastHit = now; }
+  }
+  function onBeamDone(b, quiet) {
+    state.results.set(b.key, b.res);
+    refreshLabel(b.key);
+    if (b.res.jack && !quiet) { spawnFlare(b.ln.origin, 2.6); flashScreen(); }
+  }
+  function spawnGhost(cell, strength) {
+    if (cell < 0) return;
+    W.ghostIdx = (W.ghostIdx + 1) % W.ghosts.length;
+    const g = W.ghosts[W.ghostIdx];
+    cellPos(cell, g.mesh.position); g.t0 = performance.now(); g.strength = strength; g.mesh.visible = true;
+  }
+  function updateGhosts(now) {
+    for (const g of W.ghosts) {
+      if (!g.mesh.visible) continue;
+      const u = (now - g.t0) / 320;
+      if (u >= 1) { g.mesh.visible = false; continue; }
+      g.mesh.material.opacity = g.strength * (1 - u);
+    }
+  }
+  function spawnFlare(pos, scale) {
+    W.flareIdx = (W.flareIdx + 1) % W.flares.length;
+    const f = W.flares[W.flareIdx];
+    f.sprite.position.copy(pos); f.t0 = performance.now(); f.scale = scale || 1; f.sprite.visible = true;
+  }
+  function updateFlares(now) {
+    for (const f of W.flares) {
+      if (!f.sprite.visible) continue;
+      const u = (now - f.t0) / 520;
+      if (u >= 1) { f.sprite.visible = false; continue; }
+      const sc = f.scale * (0.35 + 1.25 * easeOutCubic(u));
+      f.sprite.scale.set(sc, sc, 1); f.sprite.material.opacity = (1 - u) * (1 - u);
+    }
+  }
+  function updateTiles(now) {
+    for (const t of W.tiles) {
+      const sel = state.bets.has(t.ln.key), hov = W.hover === t;
+      const res = state.results.get(t.ln.key);
+      let c, glow;
+      if (sel) { c = hov ? TILE_C.selHover : TILE_C.sel; glow = 0.42 + 0.12 * Math.sin(now * 0.004 + t.ph) + (res && res.k > 0 ? 0.25 : 0); }
+      else if (hov) { c = TILE_C.hover; glow = 0.12; }
+      else { c = TILE_C.idle; glow = 0; }
+      t.mat.color.copy(c);
+      t.gmat.opacity = glow; t.glow.visible = glow > 0.01;
+    }
+  }
+  function setHover(t) {
+    if (!W || W.hover === t) return;
+    W.hover = t;
+    R.renderer.domElement.classList.toggle('pointing', !!t);
+    for (const g of W.guides) g.visible = false;
+    if (t) t.ln.cells.forEach(function (c, i) { const g = W.guides[i]; if (g) { cellPos(c, g.position); g.visible = true; } });
+  }
+  function updatePreview(now) {
+    const p = W.preview, t = W.hover;
+    if (!t || state.bets.has(t.ln.key) || isBusy()) { p.g.visible = false; return; }
+    p.g.visible = true; p.g.position.copy(t.ln.origin); p.g.quaternion.setFromUnitVectors(UP, t.ln.dir); p.g.scale.set(1, t.ln.len, 1);
+    const pulse = 0.5 + 0.5 * Math.sin(now * 0.006);
+    p.core.material.opacity = 0.06 + 0.04 * pulse; p.halo.material.opacity = 0.025; p.outer.material.opacity = 0;
+  }
+
+  /* ================= camera & input ================= */
+  function viewDefaults() { return state.mode === '2.5D' ? { az: -0.36, el: 0.3 } : { az: -0.66, el: 0.5 }; }
+  function resetView(snap) {
+    const d = viewDefaults();
+    cam.tAz = d.az; cam.tEl = d.el; cam.tZoom = 1;
+    if (snap) { cam.az = d.az; cam.el = d.el; cam.zoom = 1; }
+  }
+  function computeFit() {
+    if (!W) return;
+    cam.target.set(W.mode === '2.5D' ? 0.15 : 0, W.Y * 0.48, 0);
+    const rad = W.mode === '2.5D' ? 0.5 * Math.hypot(W.X + 1.2, W.Y + 1.4) + 0.2 : 0.5 * Math.hypot(W.X + 0.6, W.Y + 1.2, W.Z + 0.6) + 0.2;
+    const vf = (R.camera.fov * Math.PI) / 180, hf = 2 * Math.atan(Math.tan(vf / 2) * R.camera.aspect);
+    cam.fitR = (rad / Math.sin(Math.min(vf, hf) / 2)) * (W.mode === '2.5D' ? 0.9 : 1);
+    R.scene.fog.density = 0.32 / cam.fitR;
+  }
+  function onResize() {
+    if (!R.renderer) return;
+    const st = $('#stage'), w = Math.max(1, st.clientWidth), h = Math.max(1, st.clientHeight);
+    R.renderer.setSize(w, h, false); R.camera.aspect = w / h; R.camera.updateProjectionMatrix(); computeFit();
+  }
+  function updateCamera(dt) {
+    const k = 1 - Math.exp(-dt * 9);
+    cam.az += (cam.tAz - cam.az) * k; cam.el += (cam.tEl - cam.el) * k; cam.zoom += (cam.tZoom - cam.zoom) * k;
+    const r = cam.fitR * cam.zoom, t = cam.target;
+    R.camera.position.set(t.x + r * Math.sin(cam.az) * Math.cos(cam.el), t.y + r * Math.sin(cam.el), t.z + r * Math.cos(cam.az) * Math.cos(cam.el));
+    R.camera.lookAt(t);
+  }
+  function pickTile(cx, cy) {
+    if (!W) return null;
+    const rect = R.renderer.domElement.getBoundingClientRect();
+    _v2.set(((cx - rect.left) / rect.width) * 2 - 1, -((cy - rect.top) / rect.height) * 2 + 1, 0.5);
+    R.raycaster.setFromCamera(_v2, R.camera);
+    const hits = R.raycaster.intersectObjects(W.tileMeshes, false);
+    return hits.length ? W.tileByKey.get(hits[0].object.userData.key) : null;
+  }
+  function bindCanvas() {
+    const cv = R.renderer.domElement, pts = new Map();
+    let down = false, dragging = false, x0 = 0, y0 = 0, lx = 0, ly = 0, pinchD = 0, pinchZ = 1;
+    cv.addEventListener('pointerdown', function (e) {
+      try { cv.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+      pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pts.size === 1) { down = true; dragging = false; x0 = lx = e.clientX; y0 = ly = e.clientY; }
+      else if (pts.size === 2) { const a = Array.from(pts.values()); pinchD = Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y); pinchZ = cam.tZoom; dragging = true; }
+    });
+    cv.addEventListener('pointermove', function (e) {
+      if (pts.has(e.pointerId)) pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pts.size >= 2) { const a = Array.from(pts.values()); const d = Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y); if (pinchD > 0 && d > 0) cam.tZoom = clamp((pinchZ * pinchD) / d, 0.45, 2.2); return; }
+      if (down && pts.has(e.pointerId)) {
+        const dx = e.clientX - lx, dy = e.clientY - ly; lx = e.clientX; ly = e.clientY;
+        if (!dragging && Math.hypot(e.clientX - x0, e.clientY - y0) > 6) { dragging = true; cv.classList.add('dragging'); setHover(null); }
+        if (dragging) { cam.tAz -= dx * 0.0068; cam.tEl = clamp(cam.tEl + dy * 0.0058, 0.06, 1.38); }
+      } else if (e.pointerType === 'mouse') {
+        setHover(isBusy() ? null : pickTile(e.clientX, e.clientY));
+      }
+    });
+    const end = function (e) {
+      const single = pts.size === 1;
+      pts.delete(e.pointerId);
+      if (e.type === 'pointerup' && down && single && !dragging) { const t = pickTile(e.clientX, e.clientY); if (t) toggleBet(t.ln.key); }
+      if (pts.size === 1) { const a = Array.from(pts.values())[0]; lx = a.x; ly = a.y; }
+      if (pts.size === 0) { down = false; dragging = false; cv.classList.remove('dragging'); }
+    };
+    cv.addEventListener('pointerup', end);
+    cv.addEventListener('pointercancel', end);
+    cv.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse' && !down) setHover(null); });
+    cv.addEventListener('wheel', function (e) { e.preventDefault(); cam.tZoom = clamp(cam.tZoom * Math.exp(e.deltaY * 0.0012), 0.45, 2.2); }, { passive: false });
+    cv.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  }
+
+  /* ================= tile labels ================= */
+  const labels = new Map();
+  function setLabel(key, html, cls) {
+    const tile = W && W.tileByKey.get(key);
+    if (!tile) return;
+    let L = labels.get(key);
+    if (!L) { const el = document.createElement('div'); $('#labels').appendChild(el); L = { el: el, pos: tile.labelPos, normal: tile.normal }; labels.set(key, L); }
+    L.el.className = 'tl ' + cls; L.el.innerHTML = html;
+  }
+  function removeLabel(key) { const L = labels.get(key); if (L) { L.el.remove(); labels.delete(key); } }
+  function clearLabels() { for (const L of labels.values()) L.el.remove(); labels.clear(); }
+  function refreshLabel(key) {
+    const res = state.results.get(key), amt = state.bets.get(key);
+    if (res) {
+      const cls = 'res' + (res.k === 0 ? ' k0' : '') + (res.jack ? ' jack' : '');
+      const html = res.k === 0 ? '<b>0</b>' : '<b>' + res.k + '</b><em>×' + fmtOdds(res.odds) + '</em>' + (res.win > 0 ? '<i>+' + fmt(res.win) + '</i>' : '');
+      setLabel(key, html, cls);
+    } else if (amt !== undefined) setLabel(key, fmt(amt), 'bet');
+    else removeLabel(key);
+  }
+  function refreshAllLabels() {
+    clearLabels();
+    if (!W) return;
+    const keys = new Set(Array.from(state.bets.keys()).concat(Array.from(state.results.keys())));
+    keys.forEach(refreshLabel);
+  }
+  function updateLabels() {
+    if (!labels.size) return;
+    const st = $('#stage'), w = st.clientWidth, h = st.clientHeight, cp = R.camera.position;
+    for (const L of labels.values()) {
+      _v2.copy(cp).sub(L.pos);
+      const facing = _v2.dot(L.normal) > 0.02;
+      _v.copy(L.pos).project(R.camera);
+      if (!facing || _v.z > 1 || _v.z < -1) { L.el.style.opacity = '0'; continue; }
+      L.el.style.opacity = '';
+      L.el.style.transform = 'translate(' + ((_v.x * 0.5 + 0.5) * w).toFixed(1) + 'px,' + ((-_v.y * 0.5 + 0.5) * h).toFixed(1) + 'px) translate(-50%,-50%)';
+    }
+  }
+
+  /* ================= betting & rounds ================= */
+  function toggleBet(key) {
+    if (isBusy()) { toast('<div class="t-mid">本局進行中</div>', 'lose', 900); return; }
+    sfx.ensure();
+    if (state.bets.has(key)) {
+      state.bets.delete(key);
+      const b = W.beams.get(key); if (b) { disposeBeam(b); W.beams.delete(key); }
+      sfx.deselect();
+    } else {
+      state.bets.set(key, state.chip);
+      W.beams.set(key, makeBeam(key));
+      sfx.select();
+    }
+    state.results.delete(key);
+    refreshLabel(key);
+    updateBetUI(); updateHint();
+  }
+  function clearBets() {
+    if (isBusy()) return;
+    for (const b of W.beams.values()) disposeBeam(b);
+    W.beams.clear(); state.bets.clear(); state.results.clear();
+    refreshAllLabels(); updateBetUI(); updateHint(); sfx.deselect();
+  }
+  function selectFace(face) {
+    if (isBusy()) return;
+    for (const ln of W.lines) {
+      if ((face === '*' || ln.face === face) && !state.bets.has(ln.key)) { state.bets.set(ln.key, state.chip); W.beams.set(ln.key, makeBeam(ln.key)); }
+    }
+    state.results.clear(); refreshAllLabels(); updateBetUI(); updateHint(); sfx.select();
+    openDrawer(false);
+  }
+  function seedSampleBets() {
+    const N = state.N, keys = state.mode === '3D'
+      ? ['F:1,1', 'F:' + (N - 2) + ',' + (N - 1), 'R:' + Math.floor(N / 2) + ',1']
+      : ['F:1,0', 'F:' + (N - 2) + ',0', 'R:' + (N - 2) + ',0'];
+    for (const k of keys) if (W.lineByKey.has(k)) state.bets.set(k, state.chip);
+  }
+  function setPhase(p) { state.phase = p; if (isBusy()) setHover(null); updateControls(); updateHint(); }
+
+  async function startRound() {
+    if (!W || isBusy()) return;
+    sfx.ensure();
+    const total = totalBet();
+    if (total <= 0) { toast('<div class="t-mid">先放一道光柱</div><div class="t-sub">點地面或側牆的任一個符文格</div>', 'lose', 1900); stopAuto(); return; }
+    if (total > state.balance + 1e-9) { toast('<div class="t-mid">餘額不足</div><div class="t-sub">本局需要 ' + fmt(total) + '。降低每格注額、減少光柱，或在「數學」重置餘額。</div>', 'lose', 2600); stopAuto(); return; }
+    if (W.stones.length !== Math.min(activeModel().M, W.X * W.Y * W.Z)) buildStones();
+    const mdl = activeModel();
+
+    // the outcome is drawn first; everything after is presentation
+    const cells = sampleStones(mdl);
+    const occ = new Uint8Array(mdl.n); for (const c of cells) occ[c] = 1;
+    const results = []; let totalWin = 0, hits = 0, jack = false;
+    for (const entry of state.bets) {
+      const key = entry[0], amt = entry[1], ln = W.lineByKey.get(key);
+      if (!ln) continue;
+      const hitsIdx = []; ln.cells.forEach(function (c, i) { if (occ[c]) hitsIdx.push(i); });
+      const k = hitsIdx.length, odds = mdl.rows[k] ? mdl.rows[k].odds : 0, win = amt * odds, isJack = k === state.N && odds > 0;
+      results.push({ key: key, face: ln.face, amt: amt, k: k, odds: odds, win: win, hitsIdx: hitsIdx, jack: isJack });
+      totalWin += win; hits += k; if (isJack) jack = true;
+    }
+
+    state.balance -= total; animateBalance();
+    state.results.clear(); refreshAllLabels();
+    for (const b of W.beams.values()) { b.state = 'spot'; b.res = null; b.fired = 0; }
+    $('#lastWin').textContent = '…'; $('#lastWin').classList.remove('up');
+
+    const T = timings();
+    setPhase('running');
+    beginRun(performance.now()); sfx.start(); sfx.rumble(T.run + T.settle);
+    await wait(T.run);
+
+    setPhase('settling');
+    assignTargets(cells, performance.now());
+    await wait(T.settle + T.settleStagger + 80);
+
+    setPhase('firing');
+    const rank = { F: 0, R: 1, B: 2 };
+    const order = results.slice().sort(function (a, b) { return rank[a.face] - rank[b.face] || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0); });
+    const stagger = order.length > 1 ? Math.min(T.beamStagger, T.beamBudget / (order.length - 1)) : 0;
+    const tf = performance.now() + 120;
+    order.forEach(function (r, i) { const b = W.beams.get(r.key); if (!b) return; b.res = r; b.state = 'armed'; b.t0 = tf + i * stagger; b.dur = T.beamGrow; b.fired = 0; });
+    await wait(120 + Math.max(0, order.length - 1) * stagger + T.beamGrow + 260);
+    finalizeBeams();
+
+    state.balance += totalWin;
+    const st = state.stats;
+    st.rounds++; st.bet += total; st.win += totalWin; st.maxWin = Math.max(st.maxWin, totalWin); st.lines += results.length;
+    state.history.unshift(totalWin - total); if (state.history.length > 10) state.history.length = 10;
+    animateBalance();
+    showSummary(results, totalWin, total, hits, jack);
+    setPhase('result');
+    writeStore(); renderStats(); renderHistory();
+    if (state.auto) {
+      await wait(state.turbo ? 650 : 1300);
+      if (state.auto && state.phase === 'result') startRound();
+    }
+  }
+  function showSummary(results, totalWin, total, hits, jack) {
+    const net = totalWin - total, lw = $('#lastWin');
+    lw.textContent = totalWin > 0 ? '+' + fmt(totalWin) : '0';
+    lw.classList.toggle('up', totalWin > 0);
+    const big = jack || (totalWin > 0 && totalWin >= total * 6);
+    if (totalWin > 0) {
+      toast((big ? '<div class="t-tag">' + (jack ? '全貫穿' : 'BIG WIN') + '</div>' : '') +
+        '<div class="t-big">+' + fmt(totalWin) + '</div><div class="t-sub">命中 ' + hits + ' 顆 · 下注 ' + fmt(total) + ' · 淨 ' + (net >= 0 ? '+' : '−') + fmt(Math.abs(net)) + '</div>',
+        big ? 'win big' : 'win', big ? 3200 : 2200);
+      sfx.win(big);
+      if (big) flashScreen();
+    } else {
+      toast('<div class="t-mid">' + (hits ? '命中，但這格不賠' : '未命中') + '</div><div class="t-sub">' + (hits ? '命中 ' + hits + ' 顆，對應賠率為 0' : '光柱沒有穿過任何飛行石') + '</div>', 'lose', 1700);
+      sfx.lose();
+    }
+    const ks = new Set(results.filter(function (r) { return r.win > 0; }).map(function (r) { return r.k; }));
+    $$('#paytable li').forEach(function (li) {
+      if (!ks.has(+li.dataset.k)) return;
+      li.classList.remove('hl'); void li.offsetWidth; li.classList.add('hl');
+      setTimeout(function () { li.classList.remove('hl'); }, 1800);
+    });
+  }
+  function toggleAuto() { state.auto = !state.auto; updateControls(); if (state.auto && !isBusy()) startRound(); }
+  function stopAuto() { if (state.auto) { state.auto = false; updateControls(); } }
+  function toggleTurbo() { state.turbo = !state.turbo; updateControls(); writeStore(); }
+  function toggleSound() { state.sound = !state.sound; if (state.sound) sfx.ensure(); sfx.setEnabled(state.sound); updateControls(); writeStore(); }
+  function resetBalance() {
+    if (isBusy()) return;
+    state.balance = START_BALANCE; state.stats = { rounds: 0, bet: 0, win: 0, maxWin: 0, lines: 0 }; state.history = [];
+    animateBalance(); renderStats(); renderHistory(); writeStore();
+    toast('<div class="t-mid">餘額已重置</div><div class="t-sub">' + fmt(START_BALANCE) + ' · 統計歸零</div>', 'win', 1500);
+  }
+
+  /* ================= UI rendering ================= */
+  let toastTimer = 0, balAnim = 0;
+  function toast(html, cls, ms) {
+    const el = $('#toast');
+    el.className = 'toast show ' + (cls || ''); el.innerHTML = html;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.className = 'toast ' + (cls || ''); }, ms || 1600);
+  }
+  function flashScreen() { if (REDUCED) return; const f = $('#flash'); f.classList.remove('on'); void f.offsetWidth; f.classList.add('on'); }
+  function animateBalance() {
+    const el = $('#balance'), from = parseFloat(el.dataset.v), to = state.balance;
+    el.dataset.v = String(to);
+    cancelAnimationFrame(balAnim);
+    if (!Number.isFinite(from) || REDUCED) { el.textContent = fmt(to); return; }
+    const t0 = performance.now();
+    const step = function (now) { const u = clamp((now - t0) / 600, 0, 1); el.textContent = fmt(lerp(from, to, easeOutCubic(u))); if (u < 1) balAnim = requestAnimationFrame(step); };
+    balAnim = requestAnimationFrame(step);
+  }
+  function renderSegs() {
+    $$('#modeSeg button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.mode === state.mode)); });
+    $$('#sizeSeg button').forEach(function (b) { b.setAttribute('aria-pressed', String(+b.dataset.n === state.N)); b.textContent = b.dataset.n + (state.mode === '3D' ? '³' : '²'); });
+  }
+  function renderChips() {
+    const wrap = $('#chips');
+    wrap.innerHTML = CHIPS.map(function (v) { return '<button type="button" class="chip" id="chip-' + v + '" data-v="' + v + '" aria-pressed="' + (v === state.chip) + '">' + v + '</button>'; }).join('');
+    $$('.chip', wrap).forEach(function (b) { b.addEventListener('click', function () { state.chip = +b.dataset.v; renderChips(); writeStore(); sfx.ensure(); sfx.tick(); }); });
+  }
+  function renderHud() {
+    const m = activeModel(), L = state.N, dimTxt = state.mode === '3D' ? L + '×' + L + '×' + L : L + '×' + L;
+    $('#hudRow').innerHTML = '<span class="pill"><b>' + state.mode + '</b> · ' + dimTxt + '</span><span class="pill">飛行石 ≤ <b>' + m.M + '</b></span><span class="pill">RTP <b>' + (m.rtp * 100).toFixed(2) + '%</b></span>' + (state.bonus ? '<span class="pill bonus">BONUS · M+1</span>' : '');
+  }
+  function renderHistory() {
+    $('#history').innerHTML = state.history.map(function (v) {
+      const cls = v > 0 ? 'up' : v < 0 ? 'down' : '';
+      return '<span class="' + cls + '">' + (v > 0 ? '+' : v < 0 ? '−' : '±') + fmt(Math.abs(v)) + '</span>';
+    }).join('');
+  }
+  function renderPaytable() {
+    const m = activeModel(), L = state.N;
+    $('#paytable').innerHTML = '<div class="pt-title">光柱賠率</div><ul class="pt-list">' + m.rows.filter(function (r) { return r.k > 0; }).map(function (r) {
+      return '<li data-k="' + r.k + '"' + (r.k === L ? ' class="jack"' : '') + '><span>' + r.k + ' 顆' + (r.k === L ? ' · 全貫穿' : '') + '</span><b>×' + fmtOdds(r.odds) + '</b></li>';
+    }).join('') + '</ul>';
+  }
+  function updateBetUI() { $('#betInfo').textContent = state.bets.size + ' 道 · ' + fmt(totalBet()); updateControls(); }
+  function updateControls() {
+    const busy = isBusy();
+    $('#startBtn').disabled = busy || state.bets.size === 0;
+    $('#clearBtn').disabled = busy || state.bets.size === 0;
+    $('#autoBtn').setAttribute('aria-pressed', String(state.auto));
+    $('#turboBtn').setAttribute('aria-pressed', String(state.turbo));
+    $('#soundBtn').setAttribute('aria-pressed', String(state.sound));
+    $$('#modeSeg button, #sizeSeg button').forEach(function (b) { b.disabled = busy; });
+  }
+  function updateHint() {
+    const el = $('#hint');
+    if (isBusy()) { el.classList.add('off'); return; }
+    el.classList.remove('off');
+    const coarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+    const faces = state.mode === '3D' ? (state.backWall ? '地面、右牆或背牆' : '地面或右牆') : '底部或右側';
+    const nav = coarse ? '拖曳旋轉 · 兩指縮放' : '拖曳旋轉 · 滾輪縮放';
+    el.textContent = state.bets.size ? '已放 ' + state.bets.size + ' 道光柱 · 點符文格增減 · ' + nav : '點' + faces + '的符文格放光柱，再點一次取消 · ' + nav;
+  }
+  function renderAll() {
+    renderSegs(); renderChips(); renderHud(); renderPaytable(); renderHistory();
+    const bal = $('#balance'); bal.dataset.v = String(state.balance); bal.textContent = fmt(state.balance);
+    updateBetUI(); updateHint();
+  }
+
+  /* ================= config changes ================= */
+  function setMode(m) { if (isBusy() || m === state.mode) return; state.mode = m; reconfigure(); }
+  function setSize(n) { if (isBusy() || n === state.N) return; state.N = n; reconfigure(); }
+  function reconfigure() {
+    stopAuto(); state.bets.clear(); state.results.clear(); state.phase = 'idle'; state.bonus = false;
+    recomputeModel(); buildWorld(); onResize(); resetView(true);
+    refreshAllLabels(); renderAll(); writeStore();
+    if ($('#drawer').classList.contains('open')) renderMath();
+  }
+  function rebuildKeepingBets() {
+    const keep = new Map(state.bets);
+    state.bets.clear(); state.results.clear(); state.phase = 'idle';
+    buildWorld(); onResize();
+    keep.forEach(function (v, k) { if (W.lineByKey.has(k)) { state.bets.set(k, v); W.beams.set(k, makeBeam(k)); } });
+    refreshAllLabels(); renderAll();
+  }
+  function applyParams(patch) {
+    const oldM = activeModel().M;
+    setOverride(patch); recomputeModel();
+    if (activeModel().M !== oldM && !isBusy()) buildStones();
+    renderHud(); renderPaytable(); writeStore(); updateMathNumbers();
+  }
+
+  /* ================= math ledger ================= */
+  let mcToken = 0;
+  function openDrawer(open) {
+    const d = $('#drawer');
+    d.classList.toggle('open', open); d.setAttribute('aria-hidden', String(!open));
+    $('#mathBtn').setAttribute('aria-expanded', String(open)); $('#scrim').hidden = !open;
+    if (open) renderMath();
+  }
+  function paramTag() {
+    if (state.overrides[cfgKey()]) return '<span class="tag warn">自訂參數</span>';
+    if (state.mode === '2.5D' && PDF_RTP[state.N] !== undefined) return '<span class="tag ok">與 PDF 原表一致</span>';
+    if (state.mode === '2.5D') return '<span class="tag">PDF 規則外推</span>';
+    return '<span class="tag spirit">原型推導 · M = N² − 1</span>';
+  }
+  function renderMath() {
+    if (!model) return;
+    mcToken++;
+    const p = params(), L = state.N, n = nCells();
+    const dimTxt = state.mode === '3D' ? L + '×' + L + '×' + L : L + '×' + L;
+    const rowsHtml = model.rows.map(function (r) {
+      return '<tr><td>' + r.k + (r.k === L ? ' <span class="dim">全貫穿</span>' : '') + '</td><td id="mp-' + r.k + '"></td><td class="dim" id="mo-' + r.k + '"></td>' +
+        '<td><input id="odds-' + r.k + '" type="number" inputmode="decimal" min="0" step="0.5" value="' + p.odds[r.k] + '" aria-label="命中 ' + r.k + ' 顆的賠率"></td><td id="mc-' + r.k + '"></td></tr>';
+    }).join('');
+    $('#mathBody').innerHTML =
+      '<section class="sec"><h3>' + state.mode + ' · ' + dimTxt + ' <span id="mTag">' + paramTag() + '</span></h3>' +
+      '<p>每局從 ' + n + ' 格中，等機率抽出一組「不超過 M 顆」的石陣（等價於：石數 m 依 C(' + n + ', m) 加權，再隨機落格）。光柱一次貫穿 ' + L + ' 格，命中 k 顆付 ×賠率。</p>' +
+      '<div class="kpis"><div class="kpi main"><span>理論 RTP</span><b id="k-rtp"></b></div><div class="kpi"><span>單線命中率</span><b id="k-hit"></b></div>' +
+      '<div class="kpi"><span>單線波動 σ</span><b id="k-sig"></b></div><div class="kpi"><span>平均石數</span><b id="k-em"></b></div></div>' +
+      '<div class="param"><label for="mInput">飛行石上限 M</label><div class="stepper"><button type="button" id="mDec" aria-label="M 減一">−</button><input id="mInput" type="number" min="1" max="' + maxM() + '" step="1" value="' + p.M + '"><button type="button" id="mInc" aria-label="M 加一">+</button></div></div>' +
+      '<div class="tbl-wrap"><table class="mt"><thead><tr><th>命中 k</th><th>機率</th><th>約 1/x</th><th>賠率</th><th>RTP 貢獻</th></tr></thead><tbody>' + rowsHtml +
+      '</tbody><tfoot><tr><td>合計</td><td>100%</td><td></td><td></td><td id="mc-sum"></td></tr></tfoot></table></div>' +
+      '<label class="switch" for="bonusToggle"><input type="checkbox" id="bonusToggle"' + (state.bonus ? ' checked' : '') + '><span>Bonus 回合：上限 M+1、賠率不變（RTP <b id="k-bonus"></b>）</span></label>' +
+      (state.mode === '3D' ? '<label class="switch" for="backToggle"><input type="checkbox" id="backToggle"' + (state.backWall ? ' checked' : '') + '><span>背牆也能下注（第三個方向）</span></label>' : '') +
+      '<div class="row-actions"><button type="button" class="btn-sm" id="resetParams">還原預設參數</button></div></section>' +
+      '<section class="sec"><h3>石數分布</h3><p>「不超過 M 的組合等機率」會讓石數幾乎集中在上限附近。</p><div class="bars" id="mBars"></div></section>' +
+      '<section class="sec"><h3>蒙地卡羅驗證</h3><p>用目前參數真的抽 100,000 局，所有可下注的光柱位置一起統計。</p>' +
+      '<button type="button" class="btn-sm primary" id="mcBtn">模擬 100,000 局</button><div class="progress"><i id="mcProg"></i></div><div class="mc-out" id="mcOut"></div></section>' +
+      '<section class="sec"><h3>設計觀察：押滿一整面幾乎沒有波動</h3>' +
+      '<p>同一方向的光柱互不重疊，每顆飛行石恰好被該方向的一道光柱穿過。押滿一整面時，總命中就等於石數 m；在「命中 k 付 ×k」的線性賠率下，回收約為 m ÷ N，只差全貫穿的加成。</p>' +
+      '<p>實測 4×4×4（地面＋右牆 32 道）：押滿的 σ 約 0.10，單線約 1.05。對玩家是穩定刷流水，對營運是洗碼與紅利套利的入口。可考慮凸性賠率（1 顆不賠、2 顆起放大）、單局覆蓋上限，或交叉格加成。</p>' +
+      '<div class="row-actions"><button type="button" class="btn-sm" id="selFloor">押滿地面</button><button type="button" class="btn-sm" id="selAll">押滿所有面</button></div></section>' +
+      '<section class="sec"><h3>本次遊玩</h3><div class="statgrid" id="statGrid"></div><div class="row-actions"><button type="button" class="btn-sm" id="resetBal">重置餘額與統計</button></div></section>';
+    updateMathNumbers(); renderStats(); bindMath();
+  }
+  function updateMathNumbers() {
+    if (!$('#k-rtp')) return;
+    $('#k-rtp').textContent = fmtPct(model.rtp, 4);
+    $('#k-hit').textContent = fmtPct(model.hit, 2);
+    $('#k-sig').textContent = model.sigma.toFixed(3);
+    $('#k-em').textContent = model.Em.toFixed(2);
+    $('#k-bonus').textContent = fmtPct(modelBonus.rtp, 2);
+    model.rows.forEach(function (r) {
+      const a = $('#mp-' + r.k), b = $('#mo-' + r.k), c = $('#mc-' + r.k);
+      if (a) a.textContent = fmtPct(r.p, 4); if (b) b.textContent = fmtOneIn(r.oneIn); if (c) c.textContent = fmtPct(r.p * r.odds, 3);
+    });
+    $('#mc-sum').textContent = fmtPct(model.rtp, 4);
+    const tag = $('#mTag'); if (tag) tag.innerHTML = paramTag();
+    const lo = Math.max(0, model.M - 6), ps = model.mDist.slice(lo), mx = Math.max.apply(null, ps.concat([1e-12]));
+    let rest = 0; for (let m = 0; m < lo; m++) rest += model.mDist[m];
+    $('#mBars').innerHTML = ps.map(function (p, i) { return '<div class="bar"><span>m=' + (lo + i) + '</span><i style="width:' + ((p / mx) * 100).toFixed(1) + '%"></i><span>' + fmtPct(p, 2) + '</span></div>'; }).reverse().join('') +
+      (lo > 0 ? '<div class="bar"><span>更少</span><i style="width:' + ((rest / mx) * 100).toFixed(1) + '%"></i><span>' + fmtPct(rest, 3) + '</span></div>' : '');
+  }
+  function bindMath() {
+    const setM = function (v) { v = clamp(Math.round(v), 1, maxM()); $('#mInput').value = v; applyParams({ M: v }); };
+    $('#mDec').onclick = function () { setM(params().M - 1); };
+    $('#mInc').onclick = function () { setM(params().M + 1); };
+    $('#mInput').onchange = function (e) { const v = +e.target.value; if (!Number.isFinite(v)) { e.target.value = params().M; return; } setM(v); };
+    model.rows.forEach(function (r) {
+      const inp = $('#odds-' + r.k);
+      inp.onchange = function () {
+        let v = +inp.value; if (!Number.isFinite(v) || v < 0) v = 0; v = Math.round(v * 100) / 100; inp.value = v;
+        const o = params().odds.slice(); o[r.k] = v; applyParams({ odds: o });
+      };
+    });
+    $('#bonusToggle').onchange = function (e) {
+      if (isBusy()) { e.target.checked = state.bonus; return; }
+      state.bonus = e.target.checked; buildStones(); renderHud(); renderPaytable();
+    };
+    const bt = $('#backToggle');
+    if (bt) bt.onchange = function (e) { if (isBusy()) { e.target.checked = state.backWall; return; } state.backWall = e.target.checked; rebuildKeepingBets(); writeStore(); renderMath(); };
+    $('#resetParams').onclick = function () {
+      const oldM = activeModel().M; delete state.overrides[cfgKey()]; recomputeModel();
+      if (activeModel().M !== oldM && !isBusy()) buildStones();
+      renderHud(); renderPaytable(); writeStore(); renderMath();
+    };
+    $('#mcBtn').onclick = function () { runMC(100000); };
+    $('#selFloor').onclick = function () { selectFace('F'); };
+    $('#selAll').onclick = function () { selectFace('*'); };
+    $('#resetBal').onclick = resetBalance;
+  }
+  function renderStats() {
+    const g = $('#statGrid'); if (!g) return;
+    const s = state.stats, rtp = s.bet > 0 ? fmtPct(s.win / s.bet, 2) : '—';
+    g.innerHTML = '<div><span>局數</span><b>' + s.rounds + '</b></div><div><span>光柱次數</span><b>' + s.lines + '</b></div>' +
+      '<div><span>總下注</span><b>' + fmt(s.bet) + '</b></div><div><span>總贏分</span><b>' + fmt(s.win) + '</b></div>' +
+      '<div><span>實際 RTP</span><b>' + rtp + '</b></div><div><span>單局最高</span><b>' + fmt(s.maxWin) + '</b></div>';
+  }
+  async function runMC(total) {
+    const token = mcToken, btn = $('#mcBtn'), prog = $('#mcProg');
+    if (!btn || btn.disabled) return;
+    btn.disabled = true;
+    const mdl = activeModel(), lines = W.lines.map(function (l) { return l.cells; }), n = mdl.n, L = state.N;
+    const odds = mdl.rows.map(function (r) { return r.odds; });
+    const hist = new Float64Array(L + 1), occ = new Uint8Array(n), idx = new Int16Array(n);
+    let sum = 0, sumsq = 0, done = 0;
+    while (done < total) {
+      const end = Math.min(total, done + 4000);
+      for (let r = done; r < end; r++) {
+        const u = rng(); let m = 0; while (m < mdl.M && u > mdl.mCum[m]) m++;
+        for (let i = 0; i < n; i++) idx[i] = i;
+        for (let i = 0; i < m; i++) { const j = i + Math.floor(rng() * (n - i)); const t = idx[i]; idx[i] = idx[j]; idx[j] = t; occ[idx[i]] = 1; }
+        let ret = 0;
+        for (let q = 0; q < lines.length; q++) { const cl = lines[q]; let k = 0; for (let c = 0; c < cl.length; c++) k += occ[cl[c]]; hist[k]++; ret += odds[k]; }
+        ret /= lines.length; sum += ret; sumsq += ret * ret;
+        for (let i = 0; i < m; i++) occ[idx[i]] = 0;
+      }
+      done = end;
+      if (token !== mcToken) return;
+      prog.style.width = ((done / total) * 100).toFixed(1) + '%';
+      await wait(0);
+    }
+    if (token !== mcToken) return;
+    const mean = sum / total, sd = Math.sqrt(Math.max(0, sumsq / total - mean * mean)), ci = (1.96 * sd) / Math.sqrt(total), denom = total * lines.length;
+    const rows = mdl.rows.map(function (r) { return '<tr><td>' + r.k + '</td><td>' + fmtPct(r.p, 3) + '</td><td>' + fmtPct(hist[r.k] / denom, 3) + '</td></tr>'; }).join('');
+    $('#mcOut').innerHTML = '<div class="big">' + fmtPct(mean, 3) + '<small>± ' + fmtPct(ci, 3) + '</small></div>' +
+      '<p>模擬 RTP，理論值 ' + fmtPct(mdl.rtp, 3) + (state.bonus ? '（Bonus 參數）' : '') + ' · ' + total.toLocaleString('en-US') + ' 局 × ' + lines.length + ' 道光柱</p>' +
+      '<div class="tbl-wrap"><table class="mt"><thead><tr><th>命中 k</th><th>理論</th><th>模擬</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+      '<p>波動：單線押注 σ ' + mdl.sigma.toFixed(3) + '，押滿所有面 σ ' + sd.toFixed(3) + '</p>';
+    btn.disabled = false;
+  }
+
+  /* ================= loop & boot ================= */
+  let lastT = 0;
+  function tick(now) {
+    const dt = Math.min(0.05, Math.max(0, (now - lastT) / 1000)); lastT = now;
+    if (W) {
+      updateCamera(dt); updateWallVisibility(); updateIdle(now);
+      for (const s of W.stones) updateStone(s, dt, now);
+      for (const b of W.beams.values()) updateBeam(b, now);
+      updatePreview(now); updateTiles(now);
+      if (state.phase === 'running' && now >= W.nextGhost) { spawnGhost((Math.random() * W.X * W.Y * W.Z) | 0, 0.5); W.nextGhost = now + timings().ghostEvery; }
+      updateGhosts(now); updateFlares(now); updateDust(dt); updateTorches(now);
+      R.renderer.render(R.scene, R.camera);
+      updateLabels();
+    }
+    requestAnimationFrame(tick);
+  }
+  function fatal(msg) { const v = $('#veil'); v.classList.remove('gone'); v.classList.add('err'); $('#veilText').textContent = msg; }
+  function onKey(e) {
+    const t = e.target, tag = t && t.tagName;
+    if (e.key === 'Escape') { openDrawer(false); return; }
+    if (e.code === 'Space' && !(tag === 'INPUT' || tag === 'BUTTON' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable))) { e.preventDefault(); startRound(); }
+  }
+  function bindUI() {
+    $$('#modeSeg button').forEach(function (b) { b.addEventListener('click', function () { setMode(b.dataset.mode); }); });
+    $$('#sizeSeg button').forEach(function (b) { b.addEventListener('click', function () { setSize(+b.dataset.n); }); });
+    $('#viewBtn').addEventListener('click', function () { resetView(false); });
+    $('#soundBtn').addEventListener('click', toggleSound);
+    $('#mathBtn').addEventListener('click', function () { openDrawer(!$('#drawer').classList.contains('open')); });
+    $('#drawerClose').addEventListener('click', function () { openDrawer(false); });
+    $('#scrim').addEventListener('click', function () { openDrawer(false); });
+    $('#clearBtn').addEventListener('click', clearBets);
+    $('#autoBtn').addEventListener('click', toggleAuto);
+    $('#turboBtn').addEventListener('click', toggleTurbo);
+    $('#startBtn').addEventListener('click', function () { startRound(); });
+    window.addEventListener('keydown', onKey);
+    document.addEventListener('pointerdown', function () { sfx.ensure(); }, { once: true, capture: true });
+    if (window.ResizeObserver) new ResizeObserver(onResize).observe($('#stage')); else window.addEventListener('resize', onResize);
+    bindCanvas();
+  }
+  function start(data) {
+    data = data || {};
+    if (typeof THREE === 'undefined') { fatal('3D 引擎沒有載入。請確認網路能連到 cdnjs.cloudflare.com，然後重新整理頁面。'); return; }
+    if (!initRenderer()) { fatal('這個瀏覽器無法啟動 WebGL。請改用最新版的 Chrome、Edge 或 Safari 開啟。'); return; }
+    const src = Object.assign({}, readStore(), data);
+    state.mode = src.mode === '2.5D' ? '2.5D' : '3D';
+    state.N = SIZES.indexOf(src.N) >= 0 ? src.N : 4;
+    state.balance = Number.isFinite(src.balance) && src.balance >= 0 ? src.balance : START_BALANCE;
+    state.chip = CHIPS.indexOf(src.chip) >= 0 ? src.chip : 10;
+    state.sound = src.sound !== false;
+    state.turbo = typeof src.turbo === 'boolean' ? src.turbo : REDUCED;
+    state.backWall = !!src.backWall;
+    state.overrides = src.overrides && typeof src.overrides === 'object' ? src.overrides : {};
+    if (src.stats && typeof src.stats === 'object') ['rounds', 'bet', 'win', 'maxWin', 'lines'].forEach(function (k) { if (Number.isFinite(src.stats[k])) state.stats[k] = src.stats[k]; });
+    if (Array.isArray(src.history)) state.history = src.history.filter(Number.isFinite).slice(0, 10);
+    recomputeModel();
+    buildWorld();
+    if (Array.isArray(data.bets)) data.bets.forEach(function (e) { if (Array.isArray(e) && W.lineByKey.has(e[0]) && Number.isFinite(e[1]) && e[1] > 0) state.bets.set(e[0], e[1]); });
+    else seedSampleBets();
+    state.bets.forEach(function (_, k) { W.beams.set(k, makeBeam(k)); });
+    bindUI(); onResize(); resetView(true);
+    refreshAllLabels(); renderAll();
+    const hot = window.claude && window.claude.hot;
+    if (hot && typeof hot.snapshot === 'function') {
+      try { hot.snapshot(function () { return Object.assign(persistable(), { bets: Array.from(state.bets.entries()) }); }); } catch (e) { /* ignore */ }
+    }
+    lastT = performance.now();
+    requestAnimationFrame(tick);
+    setTimeout(function () { $('#veil').classList.add('gone'); }, 150);
+  }
+
+  const hotApi = window.claude && window.claude.hot;
+  if (hotApi && typeof hotApi.ready === 'function') hotApi.ready(start);
+  else start((hotApi && hotApi.data) || {});
+})();
+</script>
+
+</body></html>
